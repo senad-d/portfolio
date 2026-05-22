@@ -125,9 +125,6 @@ const navLinks = [
         );
 
         const signalNetwork = document.querySelector('[data-signal-network]');
-        const reducedMotionQuery = window.matchMedia(
-          '(prefers-reduced-motion: reduce)',
-        );
 
         const GRID_SIZE = 48;
         const GRID_OFFSET = 0.5;
@@ -454,10 +451,6 @@ const navLinks = [
 
           refreshSceneSize();
 
-          if (reducedMotionQuery.matches) {
-            return;
-          }
-
           const dotCount =
             sceneWidth >= 1280
               ? 80
@@ -486,10 +479,6 @@ const navLinks = [
           signalResizeTimer = window.setTimeout(() => {
             rebuildSignalDots();
           }, 200);
-        });
-
-        reducedMotionQuery.addEventListener('change', () => {
-          rebuildSignalDots();
         });
 
         if (navLinks.length === 0) {

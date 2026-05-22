@@ -1705,10 +1705,6 @@ a {
     scroll-behavior: auto;
   }
 
-  .signal-network {
-    display: none;
-  }
-
   *,
   *::before,
   *::after {
