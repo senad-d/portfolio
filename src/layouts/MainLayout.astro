@@ -1,0 +1,685 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title = 'Senad | DevOps Portfolio',
+  description = 'Single-page DevOps portfolio built with Astro and Tailwind.',
+  ogImage = '/og-image.svg',
+} = Astro.props;
+
+const pageBaseUrl = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, pageBaseUrl).toString();
+const resolvedOgImage = new URL(ogImage, pageBaseUrl).toString();
+
+const navLinks = [
+  { href: '#home', label: 'Home' },
+  { href: '#projects', label: 'Projects' },
+  { href: '#about', label: 'About' },
+  { href: '#contact', label: 'Contact' },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href={`${import.meta.env.BASE_URL}favicon.svg`}
+    />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#050816" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={resolvedOgImage} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedOgImage} />
+
+    <title>{title}</title>
+  </head>
+  <body class="page-shell">
+    <a href="#main-content" class="skip-link focus-ring">Skip to content</a>
+
+    <header class="site-header" data-site-header>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#home" class="brand-link focus-ring">Senad Dizdarevic</a>
+
+        <button
+          type="button"
+          class="nav-toggle focus-ring"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-controls="primary-nav-links"
+          aria-label="Open navigation menu"
+        >
+          <span class="sr-only">Toggle navigation menu</span>
+          <span class="nav-toggle-icon" aria-hidden="true">
+            <span class="nav-toggle-line"></span>
+            <span class="nav-toggle-line"></span>
+            <span class="nav-toggle-line"></span>
+          </span>
+        </button>
+
+        <ul id="primary-nav-links" class="nav-links" role="list" data-nav-list>
+          {
+            navLinks.map((link, index) => (
+              <li>
+                <a
+                  href={link.href}
+                  data-nav-link
+                  aria-current={index === 0 ? 'true' : undefined}
+                  class:list={[
+                    'nav-link',
+                    'focus-ring',
+                    index === 0 && 'is-active',
+                  ]}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </header>
+
+    <div class="signal-network" aria-hidden="true" data-signal-network></div>
+
+    <main id="main-content" class="site-main">
+      <slot />
+    </main>
+
+    <script>
+      (() => {
+        const header = document.querySelector('[data-site-header]');
+        const navToggle = document.querySelector('[data-nav-toggle]');
+        const navList = document.querySelector('[data-nav-list]');
+        const desktopMediaQuery = window.matchMedia('(min-width: 768px)');
+
+        const headerElement = header instanceof HTMLElement ? header : null;
+        const navToggleButton =
+          navToggle instanceof HTMLButtonElement ? navToggle : null;
+
+        const navLinks = Array.from(
+          document.querySelectorAll('[data-nav-link]'),
+        ).filter(
+          (link): link is HTMLAnchorElement =>
+            link instanceof HTMLAnchorElement,
+        );
+
+        const signalNetwork = document.querySelector('[data-signal-network]');
+        const reducedMotionQuery = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        );
+
+        const GRID_SIZE = 48;
+        const GRID_OFFSET = 0.5;
+        const EDGE_BUFFER = 28;
+        const MIN_DOT_DISTANCE = GRID_SIZE * 2.0;
+
+        type Direction = 'up' | 'down' | 'left' | 'right';
+
+        interface SignalDot {
+          element: HTMLSpanElement;
+          x: number;
+          y: number;
+          direction: Direction;
+          speed: number;
+          turnChance: number;
+        }
+
+        const randomInRange = (min: number, max: number) =>
+          Math.random() * (max - min) + min;
+
+        const randomGridCoordinate = (max: number) => {
+          const lineCount = Math.max(1, Math.floor(max / GRID_SIZE));
+
+          return Math.round(randomInRange(0, lineCount)) * GRID_SIZE + GRID_OFFSET;
+        };
+
+        const turnLeft = (direction: Direction): Direction => {
+          if (direction === 'right') {
+            return 'up';
+          }
+
+          if (direction === 'up') {
+            return 'left';
+          }
+
+          if (direction === 'left') {
+            return 'down';
+          }
+
+          return 'right';
+        };
+
+        const turnRight = (direction: Direction): Direction => {
+          if (direction === 'right') {
+            return 'down';
+          }
+
+          if (direction === 'down') {
+            return 'left';
+          }
+
+          if (direction === 'left') {
+            return 'up';
+          }
+
+          return 'right';
+        };
+
+        const reverseDirection = (direction: Direction): Direction => {
+          if (direction === 'right') {
+            return 'left';
+          }
+
+          if (direction === 'left') {
+            return 'right';
+          }
+
+          if (direction === 'up') {
+            return 'down';
+          }
+
+          return 'up';
+        };
+
+        const moveDot = (dot: SignalDot, distance: number) => {
+          if (dot.direction === 'right') {
+            dot.x += distance;
+            return;
+          }
+
+          if (dot.direction === 'left') {
+            dot.x -= distance;
+            return;
+          }
+
+          if (dot.direction === 'down') {
+            dot.y += distance;
+            return;
+          }
+
+          dot.y -= distance;
+        };
+
+        const distanceToIntersection = (dot: SignalDot) => {
+          const axisPosition =
+            dot.direction === 'left' || dot.direction === 'right' ? dot.x : dot.y;
+          const shiftedAxisPosition = axisPosition - GRID_OFFSET;
+          const mod = ((shiftedAxisPosition % GRID_SIZE) + GRID_SIZE) % GRID_SIZE;
+
+          if (dot.direction === 'right' || dot.direction === 'down') {
+            return mod < 0.001 ? GRID_SIZE : GRID_SIZE - mod;
+          }
+
+          return mod < 0.001 ? GRID_SIZE : mod;
+        };
+
+        let sceneWidth = window.innerWidth;
+        let sceneHeight = window.innerHeight;
+
+        const refreshSceneSize = () => {
+          sceneWidth = window.innerWidth;
+          sceneHeight = Math.max(
+            window.innerHeight,
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight,
+          );
+
+          if (signalNetwork instanceof HTMLElement) {
+            signalNetwork.style.minHeight = `${sceneHeight}px`;
+          }
+        };
+
+        const chooseDirection = (dot: SignalDot) => {
+          const forceTurn =
+            (dot.direction === 'left' && dot.x <= GRID_SIZE + GRID_OFFSET) ||
+            (dot.direction === 'right' &&
+              dot.x >= sceneWidth - GRID_SIZE + GRID_OFFSET) ||
+            (dot.direction === 'up' && dot.y <= GRID_SIZE + GRID_OFFSET) ||
+            (dot.direction === 'down' &&
+              dot.y >= sceneHeight - GRID_SIZE + GRID_OFFSET);
+
+          if (forceTurn || Math.random() < dot.turnChance) {
+            dot.direction =
+              Math.random() < 0.5
+                ? turnLeft(dot.direction)
+                : turnRight(dot.direction);
+            return;
+          }
+
+          if (Math.random() < 0.02) {
+            dot.direction = reverseDirection(dot.direction);
+          }
+        };
+
+        const wrapDot = (dot: SignalDot) => {
+          if (dot.x < -EDGE_BUFFER) {
+            dot.x = sceneWidth + EDGE_BUFFER;
+          } else if (dot.x > sceneWidth + EDGE_BUFFER) {
+            dot.x = -EDGE_BUFFER;
+          }
+
+          if (dot.y < -EDGE_BUFFER) {
+            dot.y = sceneHeight + EDGE_BUFFER;
+          } else if (dot.y > sceneHeight + EDGE_BUFFER) {
+            dot.y = -EDGE_BUFFER;
+          }
+        };
+
+        const syncDotPosition = (dot: SignalDot) => {
+          dot.element.style.transform = `translate3d(${dot.x.toFixed(2)}px, ${dot.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
+        };
+
+        const updateDot = (dot: SignalDot, deltaSeconds: number) => {
+          let remainingDistance = dot.speed * deltaSeconds;
+
+          while (remainingDistance > 0) {
+            const stepToIntersection = distanceToIntersection(dot);
+            const travelDistance = Math.min(remainingDistance, stepToIntersection);
+
+            moveDot(dot, travelDistance);
+            remainingDistance -= travelDistance;
+
+            if (travelDistance + 0.001 >= stepToIntersection) {
+              dot.x = Math.round((dot.x - GRID_OFFSET) / GRID_SIZE) * GRID_SIZE + GRID_OFFSET;
+              dot.y = Math.round((dot.y - GRID_OFFSET) / GRID_SIZE) * GRID_SIZE + GRID_OFFSET;
+              chooseDirection(dot);
+            }
+          }
+
+          wrapDot(dot);
+          syncDotPosition(dot);
+        };
+
+        const createSignalDot = (existingDots: SignalDot[]): SignalDot => {
+          const createStartState = () => {
+            const horizontalStart = Math.random() < 0.5;
+            const x = horizontalStart
+              ? randomInRange(-EDGE_BUFFER, sceneWidth + EDGE_BUFFER)
+              : randomGridCoordinate(sceneWidth);
+            const y = horizontalStart
+              ? randomGridCoordinate(sceneHeight)
+              : randomInRange(-EDGE_BUFFER, sceneHeight + EDGE_BUFFER);
+            const direction: Direction = horizontalStart
+              ? Math.random() < 0.5
+                ? 'left'
+                : 'right'
+              : Math.random() < 0.5
+                ? 'up'
+                : 'down';
+
+            return { x, y, direction };
+          };
+
+          let startState = createStartState();
+
+          for (let attempt = 0; attempt < 90; attempt += 1) {
+            const candidate = createStartState();
+            const isTooClose = existingDots.some((existingDot) => {
+              const distance = Math.hypot(
+                candidate.x - existingDot.x,
+                candidate.y - existingDot.y,
+              );
+
+              return distance < MIN_DOT_DISTANCE;
+            });
+
+            if (!isTooClose) {
+              startState = candidate;
+              break;
+            }
+          }
+
+          const element = document.createElement('span');
+          element.classList.add('signal-dot');
+
+          const isDim = Math.random() < 0.3;
+
+          if (Math.random() < 0.34) {
+            element.classList.add('signal-dot--violet');
+          }
+
+          const peakOpacity = isDim
+            ? randomInRange(0.32, 0.56)
+            : randomInRange(0.52, 0.86);
+          const cruiseOpacity = Math.max(
+            0.18,
+            peakOpacity - randomInRange(0.08, 0.2),
+          );
+          const minOpacity = Math.max(
+            0.08,
+            peakOpacity - randomInRange(0.32, 0.46),
+          );
+
+          element.style.setProperty('--signal-dot-opacity', peakOpacity.toFixed(2));
+          element.style.setProperty(
+            '--signal-dot-cruise-opacity',
+            cruiseOpacity.toFixed(2),
+          );
+          element.style.setProperty(
+            '--signal-dot-min-opacity',
+            minOpacity.toFixed(2),
+          );
+          element.style.setProperty(
+            '--signal-dot-glow',
+            `${Math.round(randomInRange(9, 14))}px`,
+          );
+          element.style.setProperty(
+            '--signal-dot-presence-duration',
+            `${randomInRange(4.8, 9.4).toFixed(2)}s`,
+          );
+          element.style.setProperty(
+            '--signal-dot-presence-delay',
+            `${(-randomInRange(0, 8)).toFixed(2)}s`,
+          );
+
+          return {
+            element,
+            x: startState.x,
+            y: startState.y,
+            direction: startState.direction,
+            speed: randomInRange(18, 42),
+            turnChance: randomInRange(0.3, 0.52),
+          };
+        };
+
+        let signalDots: SignalDot[] = [];
+        let signalFrameId = 0;
+        let signalLastFrame = 0;
+        let signalResizeTimer = 0;
+
+        const getSeparationFactor = (dot: SignalDot) => {
+          let factor = 1;
+
+          for (const otherDot of signalDots) {
+            if (otherDot === dot) {
+              continue;
+            }
+
+            const distance = Math.hypot(dot.x - otherDot.x, dot.y - otherDot.y);
+
+            if (distance < GRID_SIZE * 0.95) {
+              factor = Math.min(factor, 0.3);
+            } else if (distance < GRID_SIZE * 1.5) {
+              factor = Math.min(factor, 0.68);
+            }
+          }
+
+          return factor;
+        };
+
+        const animateSignalDots = (timestamp: number) => {
+          const deltaSeconds = Math.min(
+            0.05,
+            Math.max(0.001, (timestamp - signalLastFrame) / 1000),
+          );
+
+          signalLastFrame = timestamp;
+
+          signalDots.forEach((dot) => {
+            updateDot(dot, deltaSeconds * getSeparationFactor(dot));
+          });
+
+          signalFrameId = window.requestAnimationFrame(animateSignalDots);
+        };
+
+        const rebuildSignalDots = () => {
+          if (!(signalNetwork instanceof HTMLElement)) {
+            return;
+          }
+
+          window.cancelAnimationFrame(signalFrameId);
+          signalDots = [];
+          signalNetwork.replaceChildren();
+
+          refreshSceneSize();
+
+          if (reducedMotionQuery.matches) {
+            return;
+          }
+
+          const dotCount =
+            sceneWidth >= 1280
+              ? 40
+              : sceneWidth >= 1024
+                ? 30
+                : sceneWidth >= 768
+                  ? 25
+                  : 20;
+
+          for (let index = 0; index < dotCount; index += 1) {
+            const dot = createSignalDot(signalDots);
+
+            signalDots.push(dot);
+            signalNetwork.append(dot.element);
+            syncDotPosition(dot);
+          }
+
+          signalLastFrame = performance.now();
+          signalFrameId = window.requestAnimationFrame(animateSignalDots);
+        };
+
+        rebuildSignalDots();
+
+        window.addEventListener('resize', () => {
+          window.clearTimeout(signalResizeTimer);
+          signalResizeTimer = window.setTimeout(() => {
+            rebuildSignalDots();
+          }, 200);
+        });
+
+        reducedMotionQuery.addEventListener('change', () => {
+          rebuildSignalDots();
+        });
+
+        if (navLinks.length === 0) {
+          return;
+        }
+
+        let closeMobileMenu = () => {};
+
+        if (
+          headerElement &&
+          navToggleButton &&
+          navList instanceof HTMLElement
+        ) {
+          const setMobileMenuOpen = (isOpen: boolean) => {
+            navToggleButton.setAttribute('aria-expanded', String(isOpen));
+            navToggleButton.setAttribute(
+              'aria-label',
+              isOpen ? 'Close navigation menu' : 'Open navigation menu',
+            );
+
+            if (isOpen) {
+              headerElement.setAttribute('data-menu-open', '');
+            } else {
+              headerElement.removeAttribute('data-menu-open');
+            }
+          };
+
+          closeMobileMenu = () => {
+            setMobileMenuOpen(false);
+          };
+
+          navToggleButton.addEventListener('click', () => {
+            const isOpen =
+              navToggleButton.getAttribute('aria-expanded') === 'true';
+            setMobileMenuOpen(!isOpen);
+          });
+
+          navLinks.forEach((link) => {
+            link.addEventListener('click', () => {
+              if (!desktopMediaQuery.matches) {
+                closeMobileMenu();
+              }
+            });
+          });
+
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+              closeMobileMenu();
+            }
+          });
+
+          desktopMediaQuery.addEventListener('change', (event) => {
+            if (event.matches) {
+              closeMobileMenu();
+            }
+          });
+
+          closeMobileMenu();
+        }
+
+        const sections = navLinks
+          .map((link) => {
+            const href = link.getAttribute('href');
+
+            if (!href || !href.startsWith('#')) {
+              return null;
+            }
+
+            return document.querySelector(href);
+          })
+          .filter(
+            (section): section is HTMLElement => section instanceof HTMLElement,
+          );
+
+        if (sections.length === 0) {
+          return;
+        }
+
+        const sectionIds = new Set(sections.map((section) => section.id));
+        let activeSectionId = '';
+
+        const getHeaderOffset = () =>
+          headerElement ? headerElement.getBoundingClientRect().height : 64;
+
+        const setActiveLink = (sectionId: string) => {
+          if (!sectionId || sectionId === activeSectionId) {
+            return;
+          }
+
+          activeSectionId = sectionId;
+
+          navLinks.forEach((link) => {
+            const href = link.getAttribute('href');
+            const isActive = href === `#${sectionId}`;
+
+            link.classList.toggle('is-active', isActive);
+
+            if (isActive) {
+              link.setAttribute('aria-current', 'true');
+            } else {
+              link.removeAttribute('aria-current');
+            }
+          });
+        };
+
+        const hashSectionId = () => window.location.hash.replace('#', '');
+
+        const syncHeaderScrolledState = () => {
+          if (!headerElement) {
+            return;
+          }
+
+          if (window.scrollY > 8) {
+            headerElement.setAttribute('data-scrolled', '');
+          } else {
+            headerElement.removeAttribute('data-scrolled');
+          }
+        };
+
+        const syncActiveFromScroll = () => {
+          const headerOffset = getHeaderOffset();
+          const activationLine = headerOffset + 28;
+
+          let currentSection = sections[0];
+
+          for (const section of sections) {
+            if (section.getBoundingClientRect().top <= activationLine) {
+              currentSection = section;
+            } else {
+              break;
+            }
+          }
+
+          const nearPageBottom =
+            window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 2;
+
+          if (nearPageBottom) {
+            currentSection = sections[sections.length - 1];
+          }
+
+          setActiveLink(currentSection.id);
+        };
+
+        const syncActiveFromHash = () => {
+          const sectionId = hashSectionId();
+
+          if (sectionIds.has(sectionId)) {
+            window.requestAnimationFrame(syncActiveFromScroll);
+            return;
+          }
+
+          syncActiveFromScroll();
+        };
+
+        let isScrollSyncScheduled = false;
+
+        const syncOnScroll = () => {
+          if (isScrollSyncScheduled) {
+            return;
+          }
+
+          isScrollSyncScheduled = true;
+
+          window.requestAnimationFrame(() => {
+            syncHeaderScrolledState();
+            syncActiveFromScroll();
+            isScrollSyncScheduled = false;
+          });
+        };
+
+        syncHeaderScrolledState();
+        syncActiveFromScroll();
+
+        window.addEventListener('hashchange', () => {
+          if (!desktopMediaQuery.matches) {
+            closeMobileMenu();
+          }
+
+          syncActiveFromHash();
+        });
+
+        window.addEventListener('resize', () => {
+          window.requestAnimationFrame(syncActiveFromScroll);
+        });
+
+        window.addEventListener('scroll', syncOnScroll, {
+          passive: true,
+        });
+      })();
+    </script>
+  </body>
+</html>

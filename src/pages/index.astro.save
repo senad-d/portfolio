@@ -1,0 +1,621 @@
+B---
+i[mport { getCollection } from 'astro:content';
+import MainLayout from '../layouts/MainLayout.astro';
+Ann
+
+const projects = (await getCollection('projects')).sort((a, b) =>
+  [b.data.startDate.localeCompare(a.data.startDate),
+)[;[
+[
+const laneLabel = (lane: 'professional' | 'personal') =>
+  lane.charAt(0).toUpperCase() + lane.slice(1);
+
+const dateRange = (startDate: string, endDate: string) =>
+  `${startDate} — ${endDate.toLowerCase() === 'present' ? 'Present' : endDate}`;
+
+const skillGroups = [
+  {
+    title: 'AWS Platform Delivery',
+    items: [
+      'EC2',
+      'ECS',
+      'EKS',
+      'Lambda',
+      'API Gateway',
+      'RDS',
+      'DynamoDB',
+      'S3',
+      'CloudFront',
+      'Route 53',
+      'WAF',
+    ],
+  },
+  {
+    title: 'Infrastructure & Automation',
+    items: [
+      'Terraform',
+      'GitHub Actions',
+      'CodePipeline',
+      'Jenkins',
+      'Bash',
+      'Docker',
+    ],
+  },
+  {
+    title: 'Observability & Security',
+    items: [
+      'CloudWatch',
+      'Grafana',
+      'Loki',
+      'Prometheus',
+      'Tempo',
+      'OpenTelemetry',
+      'Trivy',
+      'OWASP Dependency-Check',
+      'Security Hub',
+      'AWS Config',
+    ],
+  },
+  {
+    title: 'LLM Tooling',
+    items: [
+      'OpenAI models',
+      'Claude models',
+      'Gemma',
+      'Mistral',
+      'Qwen',
+      'Codex',
+      'Pi',
+    ],
+  },
+];
+
+const experienceTimeline = [
+  {
+    role: 'DevOps Engineer — Principal Technology CSE',
+    company: 'Valcon (full-time)',
+    period: '2026-01 — Present',
+    highlights: [
+      'Lead AWS and Terraform delivery for enterprise-grade cloud platforms.',
+      'Support secure-by-default infrastructure decisions and operational standards.',
+    ],
+  },
+  {
+    role: 'DevOps Engineer — Senior Specialist',
+    company: 'Valcon (full-time)',
+    period: '2024-07 — 2026-01',
+    highlights: [
+      'Scaled reusable IaC and deployment workflows across client engagements.',
+      'Improved delivery speed by reducing manual release bottlenecks.',
+    ],
+  },
+  {
+    role: 'DevOps Engineer',
+    company: 'Upwork (freelance)',
+    period: '2025-02 — Present',
+    highlights: [
+      'Design and operate production-ready AWS environments for startups and growing teams.',
+      'Implement practical CI/CD, security, and observability improvements with clear ownership.',
+    ],
+  },
+  {
+    role: 'Technical Support Manager',
+    company: 'INA Grupa (full-time)',
+    period: '2011-01 — 2022-11',
+    highlights: [
+      'Built strong operational discipline through long-term production support ownership.',
+      'Developed communication and incident coordination practices later applied in DevOps delivery.',
+    ],
+  },
+];
+
+const certifications = [
+  {
+    title: 'AWS Certified Solutions Architect — Associate',
+    issuer: 'Amazon Web Services',
+    issued: '2023-01',
+    credentialId: '9FRV6K8KYBVEQG92',
+  },
+];
+---
+
+<MainLayout
+  title="Senad | DevOps Portfolio"
+  description="AWS-certified DevOps engineer portfolio focused on secure automation, delivery reliability, and measurable cloud outcomes."
+>
+  <section
+    id="home"
+    class="section-anchor section-block"
+    aria-labelledby="home-title"
+  >
+    <p class="section-kicker">DevOps & Cloud Engineer</p>
+    <h1
+      id="home-title"
+      class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl"
+    >
+      Building reliable cloud platforms with practical automation
+    </h1>
+    <p class="mt-5 max-w-3xl text-base text-[color:var(--text-300)] md:text-lg">
+      AWS-certified DevOps engineer helping hiring teams and freelance clients
+      ship faster with lower operational risk. I turn cloud complexity into
+      secure, automated delivery systems with clear ownership and measurable
+      outcomes.
+    </p>
+
+    <div class="hero-actions mt-8 flex flex-wrap gap-3">
+      <a href="#projects" class="button-primary focus-ring">View projects</a>
+      <a href="#contact" class="button-secondary focus-ring">Contact</a>
+    </div>
+
+    <ul class="mt-8 grid gap-3 sm:grid-cols-3" role="list">
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Hiring teams
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          End-to-end platform ownership across architecture, delivery, and
+          day-2 operations.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Freelance clients
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          Production-ready AWS foundations with practical automation and clear,
+          transparent delivery communication.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Shared outcome
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          Faster releases, fewer operational surprises, and maintainable cloud
+          systems.
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    id="skills"
+    class="section-anchor section-block"
+    aria-labelledby="skills-title"
+  >
+    <h2 id="skills-title" class="text-2xl font-semibold md:text-3xl">Skills</h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Production-focused tooling used across full-time and freelance cloud
+      delivery projects.
+    </p>
+
+    <ul class="mt-6 m-0 grid list-none gap-4 p-0 md:grid-cols-2" role="list">
+      {
+        skillGroups.map((group) => (
+          <li>
+            <article class="card-surface p-5">
+              <h3 class="text-base font-semibold text-[color:var(--text-100)]">
+                {group.title}
+              </h3>
+              <ul class="mt-4 flex flex-wrap gap-2" role="list">
+                {group.items.map((item) => (
+                  <li class="pill-chip">{item}</li>
+                ))}
+              </ul>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section
+    id="projects"
+    class="section-anchor section-block"
+    aria-labelledby="projects-title"
+  >
+    <h2 id="projects-title" class="text-2xl font-semibold md:text-3xl">
+      Projects
+    </h2>
+    <p class="mt-3 max-w-2xl text-[color:var(--text-300)]">
+      Selected infrastructure work delivered through markdown-driven content.
+    </p>
+
+    <div
+      class="mt-6 flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Filter projects by lane"
+    >
+      <button
+        type="button"
+        class="filter-control is-active focus-ring"
+        data-filter-button
+        data-filter="all"
+        aria-pressed="true"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        class="filter-control focus-ring"
+        data-filter-button
+        data-filter="professional"
+        aria-pressed="false"
+      >
+        Professional
+      </button>
+      <button
+        type="button"
+        class="filter-control focus-ring"
+        data-filter-button
+        data-filter="personal"
+        aria-pressed="false"
+      >
+        Personal
+      </button>
+    </div>
+
+    <ul class="mt-8 grid gap-4 lg:grid-cols-2" role="list" data-project-list>
+      {
+        projects.map((project) => (
+          <li
+            class="card-surface p-5"
+            data-project-item
+            data-project-lane={project.data.lane}
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="pill-chip">{laneLabel(project.data.lane)}</span>
+              <span class="text-xs text-[color:var(--text-300)]">
+                {dateRange(project.data.startDate, project.data.endDate)}
+              </span>
+            </div>
+
+            <h3 class="mt-4 text-xl font-semibold tracking-tight text-[color:var(--text-100)]">
+              {project.data.title}
+            </h3>
+            <p class="mt-3 text-sm text-[color:var(--text-300)]">
+              {project.data.summary}
+            </p>
+
+            <ul class="mt-4 flex flex-wrap gap-2" role="list">
+              {project.data.stack.map((item) => (
+                <li class="pill-chip">{item}</li>
+              ))}
+            </ul>
+
+            <details class="details-panel mt-4">
+              <summary class="details-summary focus-ring">
+                View delivery details
+              </summary>
+
+              <div class="details-content">
+                <p class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]">
+                  Impact
+                </p>
+                <ul
+                  class="mt-3 list-disc space-y-2 pl-5 text-sm text-[color:var(--text-300)]"
+                  role="list"
+                >
+                  {project.data.impact.map((impactPoint) => (
+                    <li>{impactPoint}</li>
+                  ))}
+                </ul>
+
+                <div class="details-actions mt-4 flex flex-wrap gap-2">
+                  {project.data.links.github && (
+                    <a
+                      href={project.data.links.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                    >
+                      View code
+                    </a>
+                  )}
+                  {project.data.links.live && (
+                    <a
+                      href={project.data.links.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                    >
+                      Live project
+                    </a>
+                  )}
+                  {project.data.links.caseStudy && (
+                    <a
+                      href={project.data.links.caseStudy}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                    >
+                      Case study
+                    </a>
+                  )}
+                </div>
+              </div>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="sr-only" aria-live="polite" data-filter-status></p>
+
+    <p
+      class="mt-5 text-sm text-[color:var(--text-300)]"
+      data-project-empty
+      hidden
+    >
+      No projects match this filter yet.
+    </p>
+  </section>
+
+  <section
+    id="experience"
+    class="section-anchor section-block"
+    aria-labelledby="experience-title"
+  >
+    <h2 id="experience-title" class="text-2xl font-semibold md:text-3xl">
+      Experience
+    </h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Experience spans full-time enterprise work at Valcon and freelance AWS
+      delivery through Upwork.
+    </p>
+
+    <ol class="mt-6 grid gap-4" role="list">
+      {
+        experienceTimeline.map((item) => (
+          <li class="card-surface p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-semibold text-[color:var(--text-100)]">
+                  {item.role}
+                </h3>
+                <p class="mt-1 text-sm text-[color:var(--text-300)]">
+                  {item.company}
+                </p>
+              </div>
+
+              <span class="pill-chip">{item.period}</span>
+            </div>
+
+            <ul
+              class="mt-4 list-disc space-y-2 pl-5 text-sm text-[color:var(--text-300)]"
+              role="list"
+            >
+              {item.highlights.map((highlight) => (
+                <li>{highlight}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section
+    id="certifications"
+    class="section-anchor section-block"
+    aria-labelledby="certifications-title"
+  >
+    <h2 id="certifications-title" class="text-2xl font-semibold md:text-3xl">
+      Certifications
+    </h2>
+
+    <ul class="mt-6 m-0 grid list-none gap-4 p-0 lg:grid-cols-2" role="list">
+      {
+        certifications.map((certification) => (
+          <li>
+            <article class="card-surface p-5">
+              <h3 class="text-base font-semibold text-[color:var(--text-100)]">
+                {certification.title}
+              </h3>
+              <p class="mt-2 text-sm text-[color:var(--text-300)]">
+                {certification.issuer}
+              </p>
+              <p class="mt-1 text-sm text-[color:var(--text-300)]">
+                Issued {certification.issued}
+              </p>
+              <p class="mt-1 text-xs text-[color:var(--text-300)]">
+                Credential ID: {certification.credentialId}
+              </p>
+            </article>
+          </li>
+        ))
+      }
+
+      <li>
+        <article class="card-surface p-5">
+          <h3 class="text-base font-semibold text-[color:var(--text-100)]">
+            Core tools used in delivery
+          </h3>
+          <ul class="mt-4 flex flex-wrap gap-2" role="list">
+            <li class="pill-chip">Terraform</li>
+            <li class="pill-chip">Docker</li>
+            <li class="pill-chip">GitHub Actions</li>
+            <li class="pill-chip">CodePipeline</li>
+            <li class="pill-chip">Grafana</li>
+          </ul>
+        </article>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    id="about"
+    class="section-anchor section-block"
+    aria-labelledby="about-title"
+  >
+    <h2 id="about-title" class="text-2xl font-semibold md:text-3xl">About</h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      I work in two delivery modes: embedded partner for hiring teams and
+      focused consultant for freelance clients. In both cases, the goal is the
+      same—simple architecture first, reliable automation, strong security
+      posture, and clear operational ownership after handover.
+    </p>
+
+    <ul class="mt-6 grid gap-4 md:grid-cols-3" role="list">
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For hiring managers
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Dependable ownership from platform design to stable day-2 operations.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For engineering teams
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Practical CI/CD and infrastructure automation that removes bottlenecks
+          without overengineering.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For freelance clients
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Security-first AWS delivery focused on measurable business outcomes
+          and long-term maintainability.
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    id="contact"
+    class="section-anchor section-block"
+    aria-labelledby="contact-title"
+  >
+    <h2 id="contact-title" class="text-2xl font-semibold md:text-3xl">
+      Contact
+    </h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Open to both full-time DevOps roles and freelance AWS engagements. I
+      usually respond within 24 hours.
+    </p>
+    <p class="mt-2 max-w-3xl text-sm text-[color:var(--text-300)]">
+      Hiring teams can connect on LinkedIn, and clients can email directly for
+      a quick infrastructure review.
+    </p>
+
+    <ul class="contact-actions mt-6 flex flex-wrap gap-3" role="list">
+      <li>
+        <a
+          href="mailto:senad.dizdarevic.ri@gmail.com"
+          class="button-primary focus-ring">Email</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://github.com/senad-d"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          GitHub
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.linkedin.com/in/senad-dizdarevic-devops"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          LinkedIn
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.youtube.com/@senaddizdarevic7849"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          YouTube
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <script>
+    (() => {
+      const filterButtons = Array.from(
+        document.querySelectorAll('[data-filter-button]'),
+      ).filter(
+        (button): button is HTMLButtonElement =>
+          button instanceof HTMLButtonElement,
+      );
+
+      const projectItems = Array.from(
+        document.querySelectorAll('[data-project-item]'),
+      ).filter((item): item is HTMLElement => item instanceof HTMLElement);
+
+      const emptyState = document.querySelector('[data-project-empty]');
+      const filterStatus = document.querySelector('[data-filter-status]');
+
+      if (filterButtons.length === 0) {
+        return;
+      }
+
+      const applyFilter = (targetFilter: string) => {
+        let visibleCount = 0;
+
+        projectItems.forEach((item) => {
+          const lane = item.dataset.projectLane;
+          const isVisible = targetFilter === 'all' || lane === targetFilter;
+
+          item.hidden = !isVisible;
+          item.setAttribute('aria-hidden', String(!isVisible));
+
+          if (isVisible) {
+            visibleCount += 1;
+          }
+        });
+
+        filterButtons.forEach((button) => {
+          const isActive = button.dataset.filter === targetFilter;
+
+          button.setAttribute('aria-pressed', String(isActive));
+          button.classList.toggle('is-active', isActive);
+        });
+
+        if (emptyState instanceof HTMLElement) {
+          emptyState.hidden = visibleCount > 0;
+        }
+
+        if (filterStatus instanceof HTMLElement) {
+          const scope =
+            targetFilter === 'all' ? '' : ` ${targetFilter.toLowerCase()}`;
+
+          filterStatus.textContent = `Showing ${visibleCount}${scope} project${visibleCount === 1 ? '' : 's'}.`;
+        }
+      };
+
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          applyFilter(button.dataset.filter ?? 'all');
+        });
+      });
+
+      applyFilter('all');
+    })();
+  </script>
+</MainLayout>

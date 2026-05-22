@@ -1,0 +1,1290 @@
+---
+import { getCollection } from 'astro:content';
+import MainLayout from '../layouts/MainLayout.astro';
+
+const monthLabels = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+const toNormalizedProjectDate = (value: string) => {
+  const isoDateMatch = value.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
+
+  if (isoDateMatch) {
+    const [, year, month] = isoDateMatch;
+
+    return {
+      sortKey: `${year}-${month}`,
+      label: `${monthLabels[Number(month) - 1]} ${year}`,
+    };
+  }
+
+  const labelDateMatch = value.match(
+    /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/,
+  );
+
+  if (labelDateMatch) {
+    const [, monthLabel, year] = labelDateMatch;
+    const monthIndex =
+      monthLabels.indexOf(monthLabel as (typeof monthLabels)[number]) + 1;
+
+    return {
+      sortKey: `${year}-${String(monthIndex).padStart(2, '0')}`,
+      label: `${monthLabel} ${year}`,
+    };
+  }
+
+  return { sortKey: '0000-00', label: value };
+};
+
+const normalizeMarkdownExcerpt = (value: string) =>
+  value
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const extractNarrativeSection = (body: string, heading: string) => {
+  const sectionPattern = new RegExp(
+    `^##\\s+${escapeRegExp(heading)}\\s*$([\\s\\S]*?)(?=^##\\s+\\w[\\w\\s-]*\\s*$|(?![\\s\\S]))`,
+    'im',
+  );
+
+  const sectionMatch = body.match(sectionPattern);
+
+  return sectionMatch ? normalizeMarkdownExcerpt(sectionMatch[1]) : '';
+};
+
+const toProjectNarrative = (
+  body: string,
+  summary: string,
+  impact: string[],
+) => ({
+  problem: extractNarrativeSection(body, 'Problem') || summary,
+  approach:
+    extractNarrativeSection(body, 'Approach') ||
+    'Implemented with a reliability-first cloud architecture and automation focus.',
+  result: extractNarrativeSection(body, 'Result') || impact[0] || summary,
+});
+
+const projects = (await getCollection('projects'))
+  .map((project) => ({
+    ...project,
+    narrative: toProjectNarrative(
+      project.body ?? '',
+      project.data.summary,
+      project.data.impact,
+    ),
+  }))
+  .sort((a, b) =>
+    toNormalizedProjectDate(b.data.startDate).sortKey.localeCompare(
+      toNormalizedProjectDate(a.data.startDate).sortKey,
+    ),
+  );
+
+const toStackFilterValue = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const stackOptions = Array.from(
+  new Set(projects.flatMap((project) => project.data.stack)),
+).sort((a, b) => a.localeCompare(b));
+
+const laneLabel = (lane: 'professional' | 'personal') =>
+  lane.charAt(0).toUpperCase() + lane.slice(1);
+
+const dateRange = (startDate: string, endDate: string) => {
+  const start = toNormalizedProjectDate(startDate).label;
+  const end =
+    endDate.toLowerCase() === 'present'
+      ? 'Present'
+      : toNormalizedProjectDate(endDate).label;
+
+  return `${start} — ${end}`;
+};
+
+const skillGroups = [
+  {
+    title: 'AWS Platform Delivery',
+    items: [
+      'EC2',
+      'ECS',
+      'EKS',
+      'Lambda',
+      'API Gateway',
+      'RDS',
+      'DynamoDB',
+      'S3',
+      'CloudFront',
+      'Route 53',
+      'WAF',
+    ],
+  },
+  {
+    title: 'Infrastructure & Automation',
+    items: [
+      'Terraform',
+      'GitHub Actions',
+      'CodePipeline',
+      'Jenkins',
+      'Bash',
+      'Docker',
+    ],
+  },
+  {
+    title: 'Observability & Security',
+    items: [
+      'CloudWatch',
+      'Grafana',
+      'Loki',
+      'Prometheus',
+      'Tempo',
+      'OpenTelemetry',
+      'Trivy',
+      'OWASP Dependency-Check',
+      'Security Hub',
+      'AWS Config',
+    ],
+  },
+  {
+    title: 'LLM Tooling',
+    items: [
+      'OpenAI models',
+      'Claude models',
+      'Gemma',
+      'Mistral',
+      'Qwen',
+      'Codex',
+      'Pi',
+    ],
+  },
+];
+
+const experienceTimeline = [
+  {
+    role: 'DevOps Engineer — Principal Technology CSE',
+    company: 'Valcon (full-time)',
+    period: 'Jan 2026 — Present',
+    highlights: [
+      'Focus: Amazon Web Services (AWS), Terraform, and platform engineering.',
+      'Lead enterprise cloud delivery with secure and scalable infrastructure patterns.',
+    ],
+  },
+  {
+    role: 'DevOps Engineer — Senior Specialist',
+    company: 'Valcon (full-time)',
+    period: 'Jul 2024 — Jan 2026',
+    highlights: [
+      'Focus: Amazon Web Services (AWS) and Terraform.',
+      'Scaled reusable IaC and deployment workflows across client engagements.',
+    ],
+  },
+  {
+    role: 'DevOps Technology Specialist',
+    company: 'Valcon (full-time)',
+    period: 'Jan 2023 — Jul 2024',
+    highlights: [
+      'Focus: infrastructure and Linux.',
+      'Supported stable operations and core infrastructure improvements.',
+    ],
+  },
+  {
+    role: 'DevOps Engineer',
+    company: 'Valcon (full-time)',
+    period: 'Sep 2022 — Jan 2023',
+    highlights: [
+      'Focus: infrastructure, Git, and DevOps tooling.',
+      'Built foundational delivery workflows for cloud platform work.',
+    ],
+  },
+  {
+    role: 'DevOps Engineer',
+    company: 'Upwork (freelance)',
+    period: 'Feb 2025 — Present',
+    highlights: [
+      'Focus: Amazon Web Services (AWS) and Terraform.',
+      'Design and operate production-ready AWS environments for freelance clients.',
+    ],
+  },
+  {
+    role: 'Technical Support Manager',
+    company: 'INA Grupa (full-time)',
+    period: 'Jan 2011 — Nov 2022',
+    highlights: [
+      'Led long-term on-site production support operations.',
+      'Built incident communication and coordination discipline applied in later DevOps delivery.',
+    ],
+  },
+];
+
+const certifications: Array<{
+  title: string;
+  issuer: string;
+  issued: string;
+  credentialId: string;
+  credentialUrl?: string;
+}> = [
+  {
+    title: 'AWS Certified Solutions Architect — Associate',
+    issuer: 'Amazon Web Services',
+    issued: 'Jan 2023',
+    credentialId: '9FRV6K8KYBVEQG92',
+    credentialUrl:
+      'https://www.certmetrics.com/amazon/public/verification.aspx?code=9FRV6K8KYBVEQG92&lang=en',
+  },
+];
+
+const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
+---
+
+<MainLayout
+  title="Senad | DevOps Portfolio"
+  description="AWS-certified DevOps engineer portfolio focused on secure automation, delivery reliability, and measurable cloud outcomes."
+>
+  <section
+    id="home"
+    class="section-anchor section-block"
+    aria-labelledby="home-title"
+  >
+    <p class="section-kicker">DevOps & Cloud Engineer</p>
+    <h1
+      id="home-title"
+      class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl"
+    >
+      Building reliable cloud platforms with practical automation
+    </h1>
+    <p class="mt-5 max-w-3xl text-base text-[color:var(--text-300)] md:text-lg">
+      AWS-certified DevOps engineer helping hiring teams and freelance clients
+      ship faster with lower operational risk. I turn cloud complexity into
+      secure, automated delivery systems with clear ownership and measurable
+      outcomes.
+    </p>
+
+    <div class="hero-actions mt-8 flex flex-wrap gap-3">
+      <a href="#projects" class="button-primary focus-ring">View projects</a>
+      <a href="#contact" class="button-secondary focus-ring">Contact</a>
+    </div>
+
+    <ul class="mt-8 grid gap-3 sm:grid-cols-3" role="list">
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Hiring teams
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          End-to-end platform ownership across architecture, delivery, and day-2
+          operations.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Freelance clients
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          Production-ready AWS foundations with practical automation and clear,
+          transparent delivery communication.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <p
+          class="text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]"
+        >
+          Shared outcome
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--text-100)]">
+          Faster releases, fewer operational surprises, and maintainable cloud
+          systems.
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    id="projects"
+    class="section-anchor section-block"
+    aria-labelledby="projects-title"
+  >
+    <h2 id="projects-title" class="text-2xl font-semibold md:text-3xl">
+      Projects
+    </h2>
+    <p class="mt-3 max-w-2xl text-[color:var(--text-300)]">
+      Selected infrastructure work delivered through markdown-driven content.
+    </p>
+
+    <div class="project-filters mt-6" data-project-filters>
+      <button
+        type="button"
+        class="project-filter-trigger focus-ring"
+        data-filter-trigger
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-controls="projects-filter-menu"
+      >
+        <span>Filter projects</span>
+        <span class="project-filter-trigger-meta">
+          <span class="project-filter-trigger-value" data-filter-summary-label>
+            All lanes · Any stack
+          </span>
+          <span class="project-filter-trigger-chevron" aria-hidden="true">
+            ▾
+          </span>
+        </span>
+      </button>
+
+      <div
+        id="projects-filter-menu"
+        class="project-filter-menu"
+        data-filter-menu
+        hidden
+      >
+        <section
+          class="project-filter-section"
+          aria-labelledby="lane-filter-title"
+        >
+          <p id="lane-filter-title" class="project-filter-section-title">
+            Lane
+          </p>
+          <ul class="project-filter-options" role="list">
+            <li>
+              <label class="project-filter-option" for="lane-filter-all">
+                <input
+                  id="lane-filter-all"
+                  type="radio"
+                  name="lane-filter"
+                  value="all"
+                  data-lane-option
+                  checked
+                />
+                <span>All</span>
+              </label>
+            </li>
+            <li>
+              <label
+                class="project-filter-option"
+                for="lane-filter-professional"
+              >
+                <input
+                  id="lane-filter-professional"
+                  type="radio"
+                  name="lane-filter"
+                  value="professional"
+                  data-lane-option
+                />
+                <span>Professional</span>
+              </label>
+            </li>
+            <li>
+              <label class="project-filter-option" for="lane-filter-personal">
+                <input
+                  id="lane-filter-personal"
+                  type="radio"
+                  name="lane-filter"
+                  value="personal"
+                  data-lane-option
+                />
+                <span>Personal</span>
+              </label>
+            </li>
+          </ul>
+        </section>
+
+        <section
+          class="project-filter-section"
+          aria-labelledby="stack-filter-title"
+        >
+          <div class="project-filter-stack-header">
+            <p id="stack-filter-title" class="project-filter-section-title">
+              Stack
+            </p>
+            <button
+              type="button"
+              class="project-filter-clear focus-ring"
+              data-stack-clear
+            >
+              Clear stacks
+            </button>
+          </div>
+          <p class="project-filter-helper-text">
+            Select one or multiple stack options.
+          </p>
+
+          <ul class="project-filter-stack-options" role="list">
+            {
+              stackOptions.map((stack) => {
+                const stackValue = toStackFilterValue(stack);
+                const stackOptionId = `stack-filter-${stackValue}`;
+
+                return (
+                  <li>
+                    <label class="project-filter-option" for={stackOptionId}>
+                      <input
+                        id={stackOptionId}
+                        type="checkbox"
+                        value={stackValue}
+                        data-stack-option
+                        data-stack-label={stack}
+                      />
+                      <span>{stack}</span>
+                    </label>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <ul class="project-grid mt-8 grid gap-4" role="list" data-project-list>
+      {
+        projects.map((project) => (
+          <li
+            class="project-card card-surface p-5"
+            data-project-item
+            data-project-lane={project.data.lane}
+            data-project-stacks={project.data.stack
+              .map((item) => toStackFilterValue(item))
+              .join('|')}
+          >
+            <div class="project-card-meta">
+              <span class="pill-chip">{laneLabel(project.data.lane)}</span>
+              <span class="project-card-date">
+                {dateRange(project.data.startDate, project.data.endDate)}
+              </span>
+            </div>
+
+            <h3 class="project-card-title mt-4 text-xl font-semibold tracking-tight text-[color:var(--text-100)]">
+              {project.data.title}
+            </h3>
+            <p class="project-card-summary mt-3 text-sm text-[color:var(--text-300)]">
+              {project.data.summary}
+            </p>
+
+            <ul
+              class="project-card-stack mt-4 flex flex-wrap gap-2"
+              role="list"
+            >
+              {project.data.stack.map((item) => (
+                <li class="pill-chip">{item}</li>
+              ))}
+            </ul>
+
+            <details class="details-panel mt-4" data-project-details>
+              <summary class="details-summary focus-ring">
+                <span class="details-summary-main">
+                  <span class="details-summary-chevron" aria-hidden="true">
+                    ▸
+                  </span>
+                  <span class="details-summary-label">
+                    Details
+                  </span>
+                </span>
+              </summary>
+
+              <div class="details-content">
+                <dl class="project-story" role="list">
+                  <div class="project-story-item">
+                    <dt class="project-story-term">
+                      <span
+                        class="project-story-icon project-story-icon--problem"
+                        aria-hidden="true"
+                      />
+                      Problem
+                    </dt>
+                    <dd class="project-story-text">
+                      {project.narrative.problem}
+                    </dd>
+                  </div>
+                  <div class="project-story-item">
+                    <dt class="project-story-term">
+                      <span
+                        class="project-story-icon project-story-icon--approach"
+                        aria-hidden="true"
+                      />
+                      Approach
+                    </dt>
+                    <dd class="project-story-text">
+                      {project.narrative.approach}
+                    </dd>
+                  </div>
+                  <div class="project-story-item">
+                    <dt class="project-story-term">
+                      <span
+                        class="project-story-icon project-story-icon--result"
+                        aria-hidden="true"
+                      />
+                      Result
+                    </dt>
+                    <dd class="project-story-text">
+                      {project.narrative.result}
+                    </dd>
+                  </div>
+                </dl>
+
+                <p class="details-kicker text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]">
+                  Impact
+                </p>
+                <ul
+                  class="details-impact-list mt-3 list-disc space-y-2 pl-5 text-sm text-[color:var(--text-300)]"
+                  role="list"
+                >
+                  {project.data.impact.map((impactPoint) => (
+                    <li>{impactPoint}</li>
+                  ))}
+                </ul>
+
+                <div class="details-actions mt-4 flex flex-wrap gap-2">
+                  {project.data.links.github && (
+                    <a
+                      href={project.data.links.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                      aria-label="View project source code"
+                    >
+                      View code
+                    </a>
+                  )}
+                  {project.data.links.live && (
+                    <a
+                      href={project.data.links.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                      aria-label="Open live project"
+                    >
+                      Live project
+                    </a>
+                  )}
+                  {project.data.links.caseStudy && (
+                    <a
+                      href={project.data.links.caseStudy}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                      aria-label="Open project case study"
+                    >
+                      Case study
+                    </a>
+                  )}
+                </div>
+              </div>
+            </details>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="sr-only" aria-live="polite" data-filter-status></p>
+
+    <p
+      class="mt-5 text-sm text-[color:var(--text-300)]"
+      data-project-empty
+      hidden
+    >
+      No projects match this filter yet.
+    </p>
+  </section>
+
+  <section
+    id="about"
+    class="section-anchor section-block"
+    aria-labelledby="about-title"
+  >
+    <h2 id="about-title" class="text-2xl font-semibold md:text-3xl">About</h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      I work in two delivery modes: embedded partner for hiring teams and
+      focused consultant for freelance clients. In both cases, the goal is the
+      same simple architecture first, reliable automation, strong security
+      posture, and clear operational ownership after handover.
+    </p>
+
+    <ul class="mt-6 grid gap-4 md:grid-cols-3" role="list">
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For hiring managers
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Dependable ownership from platform design to stable day-2 operations.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For engineering teams
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Practical CI/CD and infrastructure automation that removes bottlenecks
+          without overengineering.
+        </p>
+      </li>
+      <li class="card-surface p-4">
+        <h3
+          class="text-sm font-semibold uppercase tracking-[0.08em] text-cyan-300"
+        >
+          For freelance clients
+        </h3>
+        <p class="mt-2 text-sm text-[color:var(--text-300)]">
+          Security-first AWS delivery focused on measurable business outcomes
+          and long-term maintainability.
+        </p>
+      </li>
+    </ul>
+  </section>
+
+  <section
+    id="experience"
+    class="section-anchor section-block"
+    aria-labelledby="experience-title"
+  >
+    <h2 id="experience-title" class="text-2xl font-semibold md:text-3xl">
+      Experience
+    </h2>
+    <p class="mb-6 mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Experience includes full-time DevOps progression at Valcon, freelance AWS
+      delivery through Upwork, and earlier operations leadership at INA Grupa.
+    </p>
+
+    <ol class="experience-timeline" role="list">
+      {
+        experienceTimeline.map((item) => (
+          <li class="experience-entry">
+            <div class="experience-header">
+              <div>
+                <h3 class="text-lg font-semibold text-[color:var(--text-100)]">
+                  {item.role}
+                </h3>
+                <p class="mt-1 text-sm text-[color:var(--text-300)]">
+                  {item.company}
+                </p>
+              </div>
+
+              <p class="experience-period">{item.period}</p>
+            </div>
+
+            <ul class="experience-highlights" role="list">
+              {item.highlights.map((highlight) => (
+                <li>{highlight}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section
+    id="skills"
+    class="section-anchor section-block"
+    aria-labelledby="skills-title"
+  >
+    <h2 id="skills-title" class="text-2xl font-semibold md:text-3xl">Skills</h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Production-focused tooling used across full-time and freelance cloud
+      delivery projects.
+    </p>
+
+    <ul class="skills-ledger" role="list">
+      {
+        skillGroups.map((group) => (
+          <li class="skills-ledger-row">
+            <h3 class="skills-ledger-title">{group.title}</h3>
+            <ul class="skills-ledger-tags" role="list">
+              {group.items.map((item) => (
+                <li class="pill-chip">{item}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section
+    id="certifications"
+    class="section-anchor section-block"
+    aria-labelledby="certifications-title"
+  >
+    <h2 id="certifications-title" class="text-2xl font-semibold md:text-3xl">
+      Certifications
+    </h2>
+
+    <div class="certifications-layout mt-6">
+      <ul class="certification-list" role="list">
+        {
+          certifications.map((certification) => (
+            <li class="certification-item">
+              <h3 class="certification-title">{certification.title}</h3>
+              <p class="certification-issuer">{certification.issuer}</p>
+
+              <dl class="certification-meta">
+                <div class="certification-meta-row">
+                  <dt>Issued</dt>
+                  <dd>{certification.issued}</dd>
+                </div>
+                <div class="certification-meta-row">
+                  <dt>Credential ID</dt>
+                  <dd>{certification.credentialId}</dd>
+                </div>
+              </dl>
+
+              {certification.credentialUrl && (
+                <a
+                  href={certification.credentialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="certification-verify-link focus-ring"
+                >
+                  Verify credential
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+
+      <aside class="tools-rail" aria-labelledby="tools-rail-title">
+        <h3 id="tools-rail-title" class="tools-rail-title">
+          Core tools used in delivery
+        </h3>
+        <ul class="tools-rail-list" role="list">
+          {coreTools.map((tool) => <li class="pill-chip">{tool}</li>)}
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section
+    id="contact"
+    class="section-anchor section-block"
+    aria-labelledby="contact-title"
+  >
+    <h2 id="contact-title" class="text-2xl font-semibold md:text-3xl">
+      Contact
+    </h2>
+    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
+      Open to both full-time DevOps roles and freelance AWS engagements. I
+      usually respond within 24 hours.
+    </p>
+    <p class="mt-2 max-w-3xl text-sm text-[color:var(--text-300)]">
+      Hiring teams can connect on LinkedIn, and clients can email directly for a
+      quick infrastructure review.
+    </p>
+
+    <ul class="contact-actions mt-6 flex flex-wrap gap-3" role="list">
+      <li>
+        <a
+          href="mailto:senad.dizdarevic.ri@gmail.com"
+          class="button-primary focus-ring">Email</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://github.com/senad-d"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          GitHub
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.linkedin.com/in/senad-dizdarevic-devops"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          LinkedIn
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.youtube.com/@senaddizdarevic7849"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="button-secondary focus-ring"
+        >
+          YouTube
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <script>
+    (() => {
+      const filterContainer = document.querySelector('[data-project-filters]');
+      const filterTrigger = document.querySelector('[data-filter-trigger]');
+      const filterMenu = document.querySelector('[data-filter-menu]');
+      const filterSummaryLabel = document.querySelector(
+        '[data-filter-summary-label]',
+      );
+
+      const laneOptionInputs = Array.from(
+        document.querySelectorAll('[data-lane-option]'),
+      ).filter(
+        (input): input is HTMLInputElement =>
+          input instanceof HTMLInputElement && input.type === 'radio',
+      );
+
+      const stackOptionInputs = Array.from(
+        document.querySelectorAll('[data-stack-option]'),
+      ).filter(
+        (input): input is HTMLInputElement =>
+          input instanceof HTMLInputElement && input.type === 'checkbox',
+      );
+
+      const stackClearButton = document.querySelector('[data-stack-clear]');
+
+      const projectItems = Array.from(
+        document.querySelectorAll('[data-project-item]'),
+      ).filter((item): item is HTMLElement => item instanceof HTMLElement);
+
+      const projectDetailPanels = projectItems
+        .map((item) => item.querySelector('[data-project-details]'))
+        .filter(
+          (panel): panel is HTMLDetailsElement =>
+            panel instanceof HTMLDetailsElement,
+        );
+
+      const emptyState = document.querySelector('[data-project-empty]');
+      const filterStatus = document.querySelector('[data-filter-status]');
+
+      if (projectItems.length === 0) {
+        return;
+      }
+
+      const selectedStacks = new Set<string>();
+      let activeLaneFilter = 'all';
+      let isFilterMenuOpen = false;
+
+      const laneFilterLabels: Record<string, string> = {
+        all: 'All lanes',
+        professional: 'Professional',
+        personal: 'Personal',
+      };
+
+      const prefersReducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+
+      const panelAnimations = new WeakMap<HTMLDetailsElement, Animation>();
+
+      const getPanelContent = (panel: HTMLDetailsElement) => {
+        const content = panel.querySelector('.details-content');
+
+        return content instanceof HTMLElement ? content : null;
+      };
+
+      const clearPanelInlineStyles = (content: HTMLElement) => {
+        content.style.overflow = '';
+        content.style.height = '';
+        content.style.opacity = '';
+      };
+
+      const stopPanelAnimation = (panel: HTMLDetailsElement) => {
+        const animation = panelAnimations.get(panel);
+
+        if (!animation) {
+          return;
+        }
+
+        panelAnimations.delete(panel);
+        animation.cancel();
+      };
+
+      const expandPanel = (
+        panel: HTMLDetailsElement,
+        options: { animate?: boolean } = {},
+      ) => {
+        const content = getPanelContent(panel);
+
+        stopPanelAnimation(panel);
+        panel.open = true;
+
+        if (!content) {
+          return;
+        }
+
+        if (options.animate === false || prefersReducedMotion) {
+          clearPanelInlineStyles(content);
+          return;
+        }
+
+        const targetHeight = content.scrollHeight;
+
+        if (targetHeight <= 0) {
+          clearPanelInlineStyles(content);
+          return;
+        }
+
+        content.style.overflow = 'hidden';
+
+        const animation = content.animate(
+          [
+            {
+              height: '0px',
+              opacity: 0,
+            },
+            {
+              height: `${targetHeight}px`,
+              opacity: 1,
+            },
+          ],
+          {
+            duration: 170,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'forwards',
+          },
+        );
+
+        panelAnimations.set(panel, animation);
+
+        const cleanup = () => {
+          if (panelAnimations.get(panel) !== animation) {
+            return;
+          }
+
+          panelAnimations.delete(panel);
+          clearPanelInlineStyles(content);
+        };
+
+        animation.addEventListener('finish', cleanup, { once: true });
+        animation.addEventListener('cancel', cleanup, { once: true });
+      };
+
+      const collapsePanel = (
+        panel: HTMLDetailsElement,
+        options: { animate?: boolean } = {},
+      ) => {
+        const content = getPanelContent(panel);
+
+        stopPanelAnimation(panel);
+
+        if (!panel.open) {
+          if (content) {
+            clearPanelInlineStyles(content);
+          }
+
+          return;
+        }
+
+        if (!content) {
+          panel.open = false;
+          return;
+        }
+
+        if (options.animate === false || prefersReducedMotion) {
+          panel.open = false;
+          clearPanelInlineStyles(content);
+          return;
+        }
+
+        const startHeight = content.offsetHeight || content.scrollHeight;
+
+        if (startHeight <= 0) {
+          panel.open = false;
+          clearPanelInlineStyles(content);
+          return;
+        }
+
+        content.style.overflow = 'hidden';
+
+        const animation = content.animate(
+          [
+            {
+              height: `${startHeight}px`,
+              opacity: 1,
+            },
+            {
+              height: '0px',
+              opacity: 0,
+            },
+          ],
+          {
+            duration: 140,
+            easing: 'cubic-bezier(0.4, 0, 1, 1)',
+            fill: 'forwards',
+          },
+        );
+
+        panelAnimations.set(panel, animation);
+
+        const finalize = () => {
+          if (panelAnimations.get(panel) !== animation) {
+            return;
+          }
+
+          panelAnimations.delete(panel);
+          panel.open = false;
+          clearPanelInlineStyles(content);
+        };
+
+        animation.addEventListener('finish', finalize, { once: true });
+        animation.addEventListener('cancel', finalize, { once: true });
+      };
+
+      const syncExpandedCardState = () => {
+        projectItems.forEach((item) => {
+          const panel = item.querySelector('[data-project-details]');
+          const isExpanded = panel instanceof HTMLDetailsElement && panel.open;
+
+          item.classList.toggle('is-expanded', isExpanded);
+        });
+      };
+
+      const syncFilterSummaryLabel = () => {
+        if (!(filterSummaryLabel instanceof HTMLElement)) {
+          return;
+        }
+
+        const laneLabel = laneFilterLabels[activeLaneFilter] ?? 'All lanes';
+
+        let stackLabel = 'Any stack';
+
+        if (selectedStacks.size === 1) {
+          const selectedInput = stackOptionInputs.find(
+            (input) => input.checked,
+          );
+          stackLabel = selectedInput?.dataset.stackLabel ?? '1 stack selected';
+        } else if (selectedStacks.size > 1) {
+          stackLabel = `${selectedStacks.size} stacks selected`;
+        }
+
+        filterSummaryLabel.textContent = `${laneLabel} · ${stackLabel}`;
+      };
+
+      const applyFilters = () => {
+        let visibleCount = 0;
+
+        projectItems.forEach((item) => {
+          const lane = item.dataset.projectLane;
+          const projectStacks = (item.dataset.projectStacks ?? '')
+            .split('|')
+            .filter((value) => value.length > 0);
+
+          const isLaneMatch =
+            activeLaneFilter === 'all' || lane === activeLaneFilter;
+          const isStackMatch =
+            selectedStacks.size === 0 ||
+            projectStacks.some((stack) => selectedStacks.has(stack));
+          const isVisible = isLaneMatch && isStackMatch;
+          const detailsPanel = item.querySelector('[data-project-details]');
+
+          item.hidden = !isVisible;
+          item.setAttribute('aria-hidden', String(!isVisible));
+
+          if (!isVisible) {
+            item.classList.remove('is-expanded');
+
+            if (detailsPanel instanceof HTMLDetailsElement) {
+              collapsePanel(detailsPanel, { animate: false });
+            }
+
+            return;
+          }
+
+          visibleCount += 1;
+        });
+
+        if (emptyState instanceof HTMLElement) {
+          emptyState.hidden = visibleCount > 0;
+        }
+
+        syncFilterSummaryLabel();
+
+        if (filterStatus instanceof HTMLElement) {
+          const laneScope =
+            activeLaneFilter === 'all'
+              ? ''
+              : ` ${activeLaneFilter.toLowerCase()}`;
+          const stackScope =
+            selectedStacks.size === 0
+              ? ''
+              : ` matching ${selectedStacks.size} stack option${selectedStacks.size === 1 ? '' : 's'}`;
+
+          filterStatus.textContent = `Showing ${visibleCount}${laneScope} project${visibleCount === 1 ? '' : 's'}${stackScope}.`;
+        }
+
+        syncExpandedCardState();
+      };
+
+      const closeFilterMenu = (options: { focusTrigger?: boolean } = {}) => {
+        if (
+          !(filterTrigger instanceof HTMLButtonElement) ||
+          !(filterMenu instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        isFilterMenuOpen = false;
+        filterMenu.hidden = true;
+        filterTrigger.setAttribute('aria-expanded', 'false');
+
+        if (options.focusTrigger) {
+          filterTrigger.focus();
+        }
+      };
+
+      const openFilterMenu = () => {
+        if (
+          !(filterTrigger instanceof HTMLButtonElement) ||
+          !(filterMenu instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        isFilterMenuOpen = true;
+        filterMenu.hidden = false;
+        filterTrigger.setAttribute('aria-expanded', 'true');
+      };
+
+      projectDetailPanels.forEach((panel) => {
+        const summary = panel.querySelector('summary');
+
+        if (!(summary instanceof HTMLElement)) {
+          return;
+        }
+
+        summary.addEventListener('click', (event) => {
+          event.preventDefault();
+
+          if (panel.open) {
+            collapsePanel(panel);
+            syncExpandedCardState();
+            return;
+          }
+
+          expandPanel(panel);
+          syncExpandedCardState();
+        });
+
+        panel.addEventListener('toggle', syncExpandedCardState);
+      });
+
+      laneOptionInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+          if (!input.checked || input.value.length === 0) {
+            return;
+          }
+
+          activeLaneFilter = input.value;
+          applyFilters();
+        });
+      });
+
+      stackOptionInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+          if (input.value.length === 0) {
+            return;
+          }
+
+          if (input.checked) {
+            selectedStacks.add(input.value);
+          } else {
+            selectedStacks.delete(input.value);
+          }
+
+          applyFilters();
+        });
+      });
+
+      if (stackClearButton instanceof HTMLButtonElement) {
+        stackClearButton.addEventListener('click', (event) => {
+          event.preventDefault();
+
+          selectedStacks.clear();
+          stackOptionInputs.forEach((input) => {
+            input.checked = false;
+          });
+
+          applyFilters();
+        });
+      }
+
+      if (
+        filterContainer instanceof HTMLElement &&
+        filterTrigger instanceof HTMLButtonElement &&
+        filterMenu instanceof HTMLElement
+      ) {
+        filterTrigger.addEventListener('click', () => {
+          if (isFilterMenuOpen) {
+            closeFilterMenu();
+            return;
+          }
+
+          openFilterMenu();
+        });
+
+        document.addEventListener('click', (event) => {
+          if (!isFilterMenuOpen) {
+            return;
+          }
+
+          const target = event.target;
+
+          if (!(target instanceof Node)) {
+            return;
+          }
+
+          if (!filterContainer.contains(target)) {
+            closeFilterMenu();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key !== 'Escape' || !isFilterMenuOpen) {
+            return;
+          }
+
+          closeFilterMenu({ focusTrigger: true });
+        });
+
+        closeFilterMenu();
+      }
+
+      const initialLaneFilter =
+        laneOptionInputs.find((input) => input.checked) ??
+        laneOptionInputs.find((input) => input.value === 'all');
+
+      if (initialLaneFilter) {
+        initialLaneFilter.checked = true;
+        activeLaneFilter = initialLaneFilter.value;
+      }
+
+      stackOptionInputs.forEach((input) => {
+        if (input.checked && input.value.length > 0) {
+          selectedStacks.add(input.value);
+        }
+      });
+
+      applyFilters();
+    })();
+  </script>
+</MainLayout>

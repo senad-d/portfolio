@@ -1,0 +1,81 @@
+backend:
+  name: github
+  repo: senad/portfolio
+  branch: main
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: projects
+    label: Projects
+    folder: src/content/projects
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{slug}}'
+    fields:
+      - { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Summary', name: 'summary', widget: 'text' }
+      - {
+          label: 'Lane',
+          name: 'lane',
+          widget: 'select',
+          options: ['professional', 'personal'],
+          default: 'professional',
+        }
+      - {
+          label: 'Featured',
+          name: 'featured',
+          widget: 'boolean',
+          default: false,
+        }
+      - {
+          label: 'Status',
+          name: 'status',
+          widget: 'select',
+          options: ['completed', 'in-progress', 'archived'],
+          default: 'completed',
+        }
+      - {
+          label: 'Start Date (YYYY-MM)',
+          name: 'startDate',
+          widget: 'string',
+          hint: 'Use YYYY-MM format.',
+        }
+      - {
+          label: 'End Date (YYYY-MM or present)',
+          name: 'endDate',
+          widget: 'string',
+          hint: 'Use YYYY-MM or present.',
+        }
+      - { label: 'Stack', name: 'stack', widget: 'list' }
+      - { label: 'Impact', name: 'impact', widget: 'list' }
+      - label: Links
+        name: links
+        widget: object
+        fields:
+          - {
+              label: 'GitHub URL',
+              name: 'github',
+              widget: 'string',
+              required: false,
+            }
+          - {
+              label: 'Live URL',
+              name: 'live',
+              widget: 'string',
+              required: false,
+            }
+          - {
+              label: 'Case Study URL',
+              name: 'caseStudy',
+              widget: 'string',
+              required: false,
+            }
+      - {
+          label: 'Body',
+          name: 'body',
+          widget: 'markdown',
+          hint: 'Use Problem, Approach, Result sections.',
+        }

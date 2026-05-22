@@ -1,0 +1,5 @@
+node_modules
+.astro
+dist
+tmp
+docs/UX_DESIGN_SPEC.md
