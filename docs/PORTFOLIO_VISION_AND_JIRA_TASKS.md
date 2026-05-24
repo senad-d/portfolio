@@ -8,7 +8,7 @@ Companion design handoff reference: [`docs/UX_DESIGN_SPEC.md`](./UX_DESIGN_SPEC.
 
 - Switched architecture from multi-page routes to **one-page section-based layout**.
 - Added explicit requirement for **sticky header always visible** (desktop + mobile).
-- Reworked ticket flow so Projects/About/Contact are implemented as **sections**, not separate pages.
+- Reworked ticket flow so all portfolio content is implemented as in-page **sections**, not separate pages.
 - Updated QA, E2E, and release checks to validate **single-route + anchor navigation**.
 - Strengthened mobile acceptance criteria across layout, navigation, and interaction behavior.
 
@@ -20,7 +20,7 @@ Build a portfolio that feels premium and futuristic while staying practical, fas
 
 ### Experience goals
 
-- **Single-page narrative flow:** users scroll through Hero → Projects → About → Contact.
+- **Single-page narrative flow:** users scroll through Home → Projects → Experience → Skills → Certifications → About → Contact.
 - **Always-visible header:** sticky navigation with section anchors and active-state feedback.
 - **Mobile-first experience:** comfortable spacing, thumb-friendly interactions, no horizontal overflow.
 - **Futuristic but restrained UI:** dark surfaces, subtle glow, minimal animation.

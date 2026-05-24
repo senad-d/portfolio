@@ -80,10 +80,13 @@ For writing and UX standards, see:
 
 ## Single-page architecture
 
-The site is implemented as one scrolling page (single route), with section anchors:
+The site is implemented as one scrolling page (single route), with section anchors in this order:
 
 - `#home`
 - `#projects`
+- `#experience`
+- `#skills`
+- `#certifications`
 - `#about`
 - `#contact`
 
@@ -165,7 +168,7 @@ Default live URL for this repository:
 ## Operations and quality docs
 
 - Documentation index: [docs/README.md](./docs/README.md)
-- UX design handoff spec: [docs/UX_DESIGN_SPEC.md](./docs/UX_DESIGN_SPEC.md)
+- UX design specification (as-built, code-first): [docs/UX_DESIGN_SPEC.md](./docs/UX_DESIGN_SPEC.md)
 - Accessibility/performance report: [docs/QUALITY_REPORT.md](./docs/QUALITY_REPORT.md)
-- UI spec compliance review: [docs/UI_SPEC_COMPLIANCE_REVIEW.md](./docs/UI_SPEC_COMPLIANCE_REVIEW.md)
+- UI spec compliance review (as-built): [docs/UI_SPEC_COMPLIANCE_REVIEW.md](./docs/UI_SPEC_COMPLIANCE_REVIEW.md)
 - Monthly maintenance checklist: [docs/MAINTENANCE_CHECKLIST.md](./docs/MAINTENANCE_CHECKLIST.md)
