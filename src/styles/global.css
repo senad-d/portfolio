@@ -755,7 +755,7 @@ a {
 
   .nav-links {
     position: static;
-    max-width: 75%;
+    max-width: calc(100% - 11rem);
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -777,7 +777,8 @@ a {
   .nav-link {
     width: auto;
     justify-content: center;
-    padding-inline: var(--space-3);
+    padding-inline: 0.5rem;
+    font-size: 0.82rem;
   }
 }
 
@@ -807,6 +808,16 @@ a {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--accent-cyan);
+}
+
+.hero-lead {
+  max-inline-size: 60ch;
+}
+
+@media (min-width: 1024px) {
+  .hero-lead {
+    max-inline-size: 52ch;
+  }
 }
 
 @media (min-width: 768px) {
@@ -856,6 +867,11 @@ a {
   padding: 0.2rem 0.65rem;
   font-size: 0.75rem;
   color: var(--text-200);
+}
+
+.pill-chip--subtle {
+  border-style: dashed;
+  color: var(--text-300);
 }
 
 .skills-ledger {
@@ -1320,11 +1336,19 @@ a {
   left: 0;
   z-index: 25;
   width: 100%;
+  max-height: min(30rem, calc(100dvh - var(--space-6)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid rgba(37, 50, 74, 0.85);
   border-radius: var(--radius-md);
   background: rgba(5, 8, 22, 0.98);
   padding: var(--space-3);
   box-shadow: 0 16px 38px rgba(5, 8, 22, 0.45);
+}
+
+.project-filters[data-filter-placement='top'] .project-filter-menu {
+  top: auto;
+  bottom: calc(100% + var(--space-2));
 }
 
 .project-filter-section + .project-filter-section {
@@ -1476,9 +1500,18 @@ a {
 
 .project-card-summary,
 .project-card-stack,
-.details-impact-list {
+.details-impact-list,
+.details-stack-list {
   inline-size: 100%;
   max-inline-size: none;
+}
+
+.project-card-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-height: 1.55;
 }
 
 .project-story {
@@ -1649,6 +1682,10 @@ a {
 
 .details-kicker {
   margin: 0;
+}
+
+.details-stack-list + .details-kicker {
+  margin-top: var(--space-8);
 }
 
 .focus-ring:focus-visible {

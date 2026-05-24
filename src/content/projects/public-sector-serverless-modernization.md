@@ -9,11 +9,11 @@ endDate: 'present'
 stack:
   - AWS Lambda
   - API Gateway
-  - Aurora
-  - S3
   - CloudFront
-  - GitHub Actions
+  - RDS
+  - S3
   - CloudWatch
+  - GitHub Actions
   - Grafana
 impact:
   - Accelerated release flow by automating quality checks, security scans, and deployments.

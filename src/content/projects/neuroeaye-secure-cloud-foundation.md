@@ -8,8 +8,15 @@ startDate: 'Apr 2025'
 endDate: 'present'
 stack:
   - AWS Organizations
+  - AWS SecurityHub
   - Terraform
+  - ECS
+  - CloudFront
+  - EFS
+  - RDS
+  - S3
   - Docker
+  - CloudMap
   - GitHub Actions
   - CodePipeline
 impact:

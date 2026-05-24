@@ -12,6 +12,7 @@ stack:
   - InfluxDB
   - Telegraf
   - Slack
+  - SNS
 impact:
   - Centralized CloudWatch telemetry into shared Grafana dashboards used across workloads.
   - Introduced Slack-routed alert workflows with clearer ownership and faster first response.

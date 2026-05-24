@@ -11,6 +11,8 @@ stack:
   - Terraform
   - Kubernetes
   - AWS Networking
+  - GitHub Actions
+  - OpenVPN
 impact:
   - Standardized baseline infrastructure patterns for new internal development projects.
   - Improved consistency and repeatability through Terraform-driven provisioning.

@@ -10,7 +10,8 @@ stack:
   - AWS ECS
   - AWS CloudFront
   - Terraform
-  - AWS Networking
+  - AWS CloudWatch
+  - SNS
 impact:
   - Delivered a production-ready backend environment on a highly available ECS architecture.
   - Improved user-facing performance with CloudFront distribution.

@@ -20,6 +20,9 @@ const resolvedOgImage = new URL(ogImage, pageBaseUrl).toString();
 const navLinks = [
   { href: '#home', label: 'Home' },
   { href: '#projects', label: 'Projects' },
+  { href: '#experience', label: 'Experience' },
+  { href: '#skills', label: 'Skills' },
+  { href: '#certifications', label: 'Certifications' },
   { href: '#about', label: 'About' },
   { href: '#contact', label: 'Contact' },
 ];
@@ -586,6 +589,18 @@ const navLinks = [
 
         const hashSectionId = () => window.location.hash.replace('#', '');
 
+        navLinks.forEach((link) => {
+          link.addEventListener('click', () => {
+            const targetId = (link.getAttribute('href') ?? '').replace('#', '');
+
+            if (!sectionIds.has(targetId)) {
+              return;
+            }
+
+            setActiveLink(targetId);
+          });
+        });
+
         const syncHeaderScrolledState = () => {
           if (!headerElement) {
             return;
@@ -600,24 +615,40 @@ const navLinks = [
 
         const syncActiveFromScroll = () => {
           const headerOffset = getHeaderOffset();
-          const activationLine = headerOffset + 28;
+          const nearPageBottom =
+            window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 2;
+          const hashId = hashSectionId();
+
+          if (nearPageBottom && sectionIds.has(hashId)) {
+            setActiveLink(hashId);
+            return;
+          }
+
+          const referenceLine =
+            headerOffset + (window.innerHeight - headerOffset) * 0.35;
+
+          const sectionAtReferenceLine = sections.find((section) => {
+            const bounds = section.getBoundingClientRect();
+
+            return (
+              bounds.top <= referenceLine && bounds.bottom > referenceLine
+            );
+          });
+
+          if (sectionAtReferenceLine) {
+            setActiveLink(sectionAtReferenceLine.id);
+            return;
+          }
 
           let currentSection = sections[0];
 
           for (const section of sections) {
-            if (section.getBoundingClientRect().top <= activationLine) {
+            if (section.getBoundingClientRect().top <= referenceLine) {
               currentSection = section;
             } else {
               break;
             }
-          }
-
-          const nearPageBottom =
-            window.innerHeight + window.scrollY >=
-            document.documentElement.scrollHeight - 2;
-
-          if (nearPageBottom) {
-            currentSection = sections[sections.length - 1];
           }
 
           setActiveLink(currentSection.id);
@@ -627,6 +658,7 @@ const navLinks = [
           const sectionId = hashSectionId();
 
           if (sectionIds.has(sectionId)) {
+            setActiveLink(sectionId);
             window.requestAnimationFrame(syncActiveFromScroll);
             return;
           }
@@ -651,7 +683,7 @@ const navLinks = [
         };
 
         syncHeaderScrolledState();
-        syncActiveFromScroll();
+        syncActiveFromHash();
 
         window.addEventListener('hashchange', () => {
           if (!desktopMediaQuery.matches) {

@@ -7,12 +7,18 @@ status: in-progress
 startDate: 'Nov 2025'
 endDate: 'present'
 stack:
+  - Terraform
   - AWS Organizations
+  - CloudFront
   - API Gateway
   - Lambda
   - DynamoDB
   - WAF
-  - Terraform
+  - ECS
+  - EC2
+  - RDS
+  - S3
+  - SES
 impact:
   - Established isolated development, staging, and production accounts to strengthen governance and release safety.
   - Replaced server-managed integration flows with API Gateway, Lambda, and DynamoDB to lower maintenance effort.

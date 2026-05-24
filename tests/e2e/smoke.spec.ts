@@ -1,6 +1,24 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const homePath = '/portfolio/';
+
+const positionFilterTriggerAtViewportBottom = async (page: Page) => {
+  await page.evaluate(() => {
+    const trigger = document.querySelector('[data-filter-trigger]');
+
+    if (!(trigger instanceof HTMLElement)) {
+      return;
+    }
+
+    document.documentElement.style.scrollBehavior = 'auto';
+
+    const triggerBounds = trigger.getBoundingClientRect();
+    const targetScrollY =
+      window.scrollY + triggerBounds.bottom - window.innerHeight;
+
+    window.scrollTo(0, Math.max(0, targetScrollY));
+  });
+};
 
 test('loads homepage and primary sections', async ({ page }) => {
   await page.goto(homePath);
@@ -19,6 +37,30 @@ test('loads homepage and primary sections', async ({ page }) => {
   await expect(page.locator('#about')).toBeVisible();
   await expect(page.locator('#contact')).toBeVisible();
 });
+
+for (const viewport of [
+  { width: 320, height: 640 },
+  { width: 375, height: 812 },
+  { width: 768, height: 1024 },
+  { width: 1024, height: 768 },
+  { width: 1440, height: 900 },
+]) {
+  test(`maintains core layout baseline for viewport ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto(homePath);
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+
+    expect(hasHorizontalOverflow).toBe(false);
+
+    await expect(page.locator('.site-header')).toBeVisible();
+    await expect(page.locator('[data-filter-trigger]')).toHaveCount(1);
+  });
+}
 
 test('keeps sticky header visible while scrolling', async ({ page }) => {
   await page.goto(homePath);
@@ -118,6 +160,95 @@ test('anchor navigation lands with visible heading under sticky header', async (
   expect(anchorPosition.gapFromHeader).toBeLessThanOrEqual(56);
 });
 
+test('keeps nav active item and aria-current aligned for anchor clicks', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(homePath);
+
+  const navTargets = [
+    '#home',
+    '#projects',
+    '#experience',
+    '#skills',
+    '#certifications',
+    '#about',
+    '#contact',
+  ] as const;
+
+  for (const target of navTargets) {
+    await page.locator(`[data-nav-link][href="${target}"]`).click();
+
+    await expect(page).toHaveURL(new RegExp(`\\/portfolio\\/${target}$`));
+
+    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveClass(
+      /is-active/,
+    );
+    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+
+    await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
+      1,
+    );
+  }
+});
+
+test('sets correct active nav item for direct hash loads', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  const navTargets = [
+    '#home',
+    '#projects',
+    '#experience',
+    '#skills',
+    '#certifications',
+    '#about',
+    '#contact',
+  ] as const;
+
+  for (const target of navTargets) {
+    await page.goto(`${homePath}${target}`);
+
+    await expect(page).toHaveURL(new RegExp(`\\/portfolio\\/${target}$`));
+
+    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveClass(
+      /is-active/,
+    );
+    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+
+    await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
+      1,
+    );
+  }
+});
+
+test('keeps active nav state after refresh on deep hash', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  await page.goto(homePath);
+  await page.locator('[data-nav-link][href="#contact"]').click();
+
+  await expect(page).toHaveURL(/\/portfolio\/#contact$/);
+  await page.reload();
+
+  await expect(page).toHaveURL(/\/portfolio\/#contact$/);
+  await expect(page.locator('[data-nav-link][href="#contact"]')).toHaveAttribute(
+    'aria-current',
+    'true',
+  );
+  await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
+    1,
+  );
+});
+
 test('projects filter updates visible cards by lane', async ({ page }) => {
   await page.goto(homePath);
 
@@ -145,6 +276,177 @@ test('projects filter updates visible cards by lane', async ({ page }) => {
   );
 });
 
+for (const viewport of [
+  { width: 320, height: 640 },
+  { width: 375, height: 812 },
+]) {
+  test(`projects filter opens fully in-view on mobile (${viewport.width}x${viewport.height})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto(homePath);
+
+    const filterTrigger = page.locator('[data-filter-trigger]');
+
+    await positionFilterTriggerAtViewportBottom(page);
+
+    await expect(filterTrigger).toBeVisible();
+
+    const triggerBottom = await filterTrigger.evaluate((element) =>
+      Math.round(element.getBoundingClientRect().bottom),
+    );
+
+    expect(triggerBottom).toBeGreaterThanOrEqual(viewport.height - 2);
+    expect(triggerBottom).toBeLessThanOrEqual(viewport.height + 2);
+
+    const scrollDeltaOnOpen = await page.evaluate(() => {
+      const trigger = document.querySelector('[data-filter-trigger]');
+
+      if (!(trigger instanceof HTMLButtonElement)) {
+        return Number.POSITIVE_INFINITY;
+      }
+
+      const beforeOpen = window.scrollY;
+      trigger.click();
+
+      return Math.abs(window.scrollY - beforeOpen);
+    });
+
+    await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+
+    const viewportPlacement = await page.evaluate(() => {
+      const menu = document.querySelector('[data-filter-menu]');
+
+      if (!(menu instanceof HTMLElement)) {
+        return {
+          panelTop: -1,
+          panelBottom: -1,
+          firstControlTop: -1,
+          firstControlBottom: -1,
+          viewportHeight: window.innerHeight,
+        };
+      }
+
+      const panelRect = menu.getBoundingClientRect();
+      const firstControl = menu.querySelector(
+        'input, button, select, textarea, a[href], [tabindex]:not([tabindex="-1"])',
+      );
+
+      let firstControlTop = -1;
+      let firstControlBottom = -1;
+
+      if (firstControl instanceof HTMLElement) {
+        const firstControlRect = firstControl.getBoundingClientRect();
+        firstControlTop = firstControlRect.top;
+        firstControlBottom = firstControlRect.bottom;
+      }
+
+      return {
+        panelTop: panelRect.top,
+        panelBottom: panelRect.bottom,
+        firstControlTop,
+        firstControlBottom,
+        viewportHeight: window.innerHeight,
+      };
+    });
+
+    expect(viewportPlacement.panelTop).toBeGreaterThanOrEqual(0);
+    expect(viewportPlacement.panelBottom).toBeLessThanOrEqual(
+      viewportPlacement.viewportHeight,
+    );
+    expect(viewportPlacement.firstControlTop).toBeGreaterThanOrEqual(0);
+    expect(viewportPlacement.firstControlBottom).toBeLessThanOrEqual(
+      viewportPlacement.viewportHeight,
+    );
+
+    expect(scrollDeltaOnOpen).toBeLessThanOrEqual(1);
+  });
+}
+
+test('projects filter closes with Escape, outside click, and trigger toggle', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(homePath);
+
+  const filterTrigger = page.locator('[data-filter-trigger]');
+
+  await positionFilterTriggerAtViewportBottom(page);
+
+  await expect(filterTrigger).toBeVisible();
+
+  await filterTrigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+
+  await page.keyboard.press('Escape');
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
+
+  await filterTrigger.click();
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+
+  await filterTrigger.click();
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
+
+  await filterTrigger.click();
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+
+  await page.mouse.click(8, 8);
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('supports keyboard-only filter flow with predictable focus', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(homePath);
+
+  const filterTrigger = page.locator('[data-filter-trigger]');
+
+  await positionFilterTriggerAtViewportBottom(page);
+
+  await filterTrigger.focus();
+  await page.keyboard.press('Enter');
+
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('radio', { name: 'All' })).toBeFocused();
+
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+
+  await page.keyboard.press('Escape');
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(filterTrigger).toBeFocused();
+});
+
+test('projects filter menu exposes semantic context tied to the trigger', async ({
+  page,
+}) => {
+  await page.goto(homePath);
+
+  const filterTrigger = page.locator('[data-filter-trigger]');
+  const filterMenu = page.locator('[data-filter-menu]');
+
+  await expect(filterTrigger).toHaveAttribute('aria-controls', 'projects-filter-menu');
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(filterMenu).toHaveAttribute('role', 'region');
+  await expect(filterMenu).toHaveAttribute(
+    'aria-labelledby',
+    'projects-filter-menu-title',
+  );
+  await expect(filterMenu).toHaveAttribute(
+    'aria-describedby',
+    'projects-filter-menu-hint',
+  );
+
+  await filterTrigger.click();
+
+  await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(filterMenu).toBeVisible();
+});
+
 test('projects can be filtered by one or multiple stack options', async ({
   page,
 }) => {
@@ -156,8 +458,8 @@ test('projects can be filtered by one or multiple stack options', async ({
 
   await page.locator('[data-filter-trigger]').click();
 
-  const mendixFilter = page.getByRole('checkbox', { name: 'Mendix' });
-  const terraformFilter = page.getByRole('checkbox', { name: 'Terraform' });
+  const mendixFilter = page.locator('#stack-filter-mendix');
+  const terraformFilter = page.locator('#stack-filter-terraform');
 
   await mendixFilter.check();
 
@@ -165,9 +467,11 @@ test('projects can be filtered by one or multiple stack options', async ({
 
   const onlyVisibleCardContainsMendix = await visibleCards
     .first()
-    .locator('.project-card-stack .pill-chip')
-    .evaluateAll((items) =>
-      items.some((item) => (item.textContent ?? '').trim() === 'Mendix'),
+    .evaluate((item) =>
+      (item.getAttribute('data-project-stacks') ?? '')
+        .split('|')
+        .filter((value) => value.length > 0)
+        .includes('mendix'),
     );
 
   expect(onlyVisibleCardContainsMendix).toBe(true);
@@ -246,6 +550,67 @@ test('project details show problem approach and result narrative', async ({
     );
 
   expect(narrativeSectionsHaveText).toBe(true);
+});
+
+test('respects reduced-motion preference for smooth scrolling behavior', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(homePath);
+
+  const scrollBehavior = await page.evaluate(
+    () => getComputedStyle(document.documentElement).scrollBehavior,
+  );
+
+  expect(scrollBehavior).toBe('auto');
+});
+
+test('core interaction flow emits no browser console warnings or errors', async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+  const pageErrors: string[] = [];
+
+  page.on('console', (message) => {
+    if (message.type() === 'warning' || message.type() === 'error') {
+      consoleIssues.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  page.on('pageerror', (error) => {
+    pageErrors.push(String(error));
+  });
+
+  await page.goto(homePath);
+
+  const navToggle = page.locator('[data-nav-toggle]');
+
+  if (await navToggle.isVisible()) {
+    await navToggle.click();
+  }
+
+  await page.locator('[data-nav-link][href="#projects"]').click();
+
+  const filterTrigger = page.locator('[data-filter-trigger]');
+
+  await filterTrigger.click();
+  await page.getByRole('radio', { name: 'Professional' }).check();
+  await filterTrigger.click();
+
+  const firstVisibleSummary = page
+    .locator('[data-project-item]:not([hidden]) [data-project-details] summary')
+    .first();
+
+  await firstVisibleSummary.click();
+
+  if (await navToggle.isVisible()) {
+    await navToggle.click();
+  }
+
+  await page.locator('[data-nav-link][href="#contact"]').click();
+
+  expect(consoleIssues).toEqual([]);
+  expect(pageErrors).toEqual([]);
 });
 
 test('contact links are present and correctly configured', async ({ page }) => {

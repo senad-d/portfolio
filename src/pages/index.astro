@@ -127,6 +127,14 @@ const skillGroups = [
   {
     title: 'AWS Platform Delivery',
     items: [
+      'AWS Organisations',
+      'AWS SecurityHub',
+      'AWS Config',
+      'IAM',
+      'VPC',
+      'AWS TransitGateway',
+      'LoadBalancer',
+      'CloudMap',
       'EC2',
       'ECS',
       'EKS',
@@ -135,20 +143,50 @@ const skillGroups = [
       'RDS',
       'DynamoDB',
       'S3',
+      'ECR',
+      'ElastiCache',
+      'CodeArtifact',
       'CloudFront',
       'Route 53',
+      'Cognito',
       'WAF',
+      'SES',
+      'SNS',
+      'SQS',
+      'SecurityHub',
+      'ParameterStore',
+      'CodeConnect',
     ],
   },
   {
-    title: 'Infrastructure & Automation',
+    title: 'Tools & Automation',
     items: [
       'Terraform',
+      'CloudFormation',
       'GitHub Actions',
       'CodePipeline',
       'Jenkins',
-      'Bash',
+      'Git',
       'Docker',
+      'OpenID',
+      'Keycloak',
+      'OpenVPN', 
+    ],
+  },
+  {
+    title: 'Frameworks and Languages Used Across Projects',
+    items: [
+      'Spring Boot', 
+      'Golang', 
+      'Java', 
+      'Node.js', 
+      'React', 
+      'Angular', 
+      'TypeScript', 
+      'JavaScript', 
+      '.NET', 
+      'Python', 
+      'Bash',
     ],
   },
   {
@@ -175,6 +213,8 @@ const skillGroups = [
       'Mistral',
       'Qwen',
       'Codex',
+      'Ollama',
+      'LM Studio',
       'Pi',
     ],
   },
@@ -273,7 +313,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
     >
       Building reliable cloud platforms with practical automation
     </h1>
-    <p class="mt-5 max-w-3xl text-base text-[color:var(--text-300)] md:text-lg">
+    <p class="hero-lead mt-5 text-base text-[color:var(--text-300)] md:text-lg">
       AWS-certified DevOps engineer helping hiring teams and freelance clients
       ship faster with lower operational risk. I turn cloud complexity into
       secure, automated delivery systems with clear ownership and measurable
@@ -358,8 +398,16 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
         id="projects-filter-menu"
         class="project-filter-menu"
         data-filter-menu
+        role="region"
+        aria-labelledby="projects-filter-menu-title"
+        aria-describedby="projects-filter-menu-hint"
         hidden
       >
+        <p id="projects-filter-menu-title" class="sr-only">Project filters</p>
+        <p id="projects-filter-menu-hint" class="sr-only">
+          Choose lane and stack filters to narrow the project list.
+        </p>
+
         <section
           class="project-filter-section"
           aria-labelledby="lane-filter-title"
@@ -487,9 +535,14 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
               class="project-card-stack mt-4 flex flex-wrap gap-2"
               role="list"
             >
-              {project.data.stack.map((item) => (
+              {project.data.stack.slice(0, 4).map((item) => (
                 <li class="pill-chip">{item}</li>
               ))}
+              {project.data.stack.length > 4 && (
+                <li class="pill-chip pill-chip--subtle">
+                  +{project.data.stack.length - 4} more
+                </li>
+              )}
             </ul>
 
             <details class="details-panel mt-4" data-project-details>
@@ -543,6 +596,15 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
                     </dd>
                   </div>
                 </dl>
+
+                <p class="details-kicker text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]">
+                  Full stack
+                </p>
+                <ul class="details-stack-list mt-3 flex flex-wrap gap-2" role="list">
+                  {project.data.stack.map((item) => (
+                    <li class="pill-chip">{item}</li>
+                  ))}
+                </ul>
 
                 <p class="details-kicker text-xs uppercase tracking-[0.12em] text-[color:var(--text-300)]">
                   Impact
@@ -1135,6 +1197,69 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
         syncExpandedCardState();
       };
 
+      const FILTER_MENU_VIEWPORT_GAP = 8;
+
+      const resetFilterMenuLayout = () => {
+        if (
+          !(filterContainer instanceof HTMLElement) ||
+          !(filterMenu instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        filterContainer.removeAttribute('data-filter-placement');
+        filterMenu.style.maxHeight = '';
+      };
+
+      const syncFilterMenuLayout = () => {
+        if (
+          !(filterContainer instanceof HTMLElement) ||
+          !(filterTrigger instanceof HTMLButtonElement) ||
+          !(filterMenu instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        filterContainer.removeAttribute('data-filter-placement');
+        filterMenu.style.maxHeight = '';
+
+        const triggerBounds = filterTrigger.getBoundingClientRect();
+        const menuBounds = filterMenu.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        const availableSpaceBelow = Math.max(
+          0,
+          viewportHeight - triggerBounds.bottom - FILTER_MENU_VIEWPORT_GAP,
+        );
+        const availableSpaceAbove = Math.max(
+          0,
+          triggerBounds.top - FILTER_MENU_VIEWPORT_GAP,
+        );
+
+        const measuredMenuHeight = Math.max(
+          menuBounds.height,
+          filterMenu.scrollHeight,
+        );
+        const shouldOpenAbove =
+          measuredMenuHeight > availableSpaceBelow &&
+          availableSpaceAbove >= availableSpaceBelow;
+        const availableSpace = shouldOpenAbove
+          ? availableSpaceAbove
+          : availableSpaceBelow;
+
+        if (shouldOpenAbove) {
+          filterContainer.setAttribute('data-filter-placement', 'top');
+        }
+
+        if (availableSpace <= 0) {
+          return;
+        }
+
+        if (measuredMenuHeight > availableSpace) {
+          filterMenu.style.maxHeight = `${Math.floor(availableSpace)}px`;
+        }
+      };
+
       const closeFilterMenu = (options: { focusTrigger?: boolean } = {}) => {
         if (
           !(filterTrigger instanceof HTMLButtonElement) ||
@@ -1146,6 +1271,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
         isFilterMenuOpen = false;
         filterMenu.hidden = true;
         filterTrigger.setAttribute('aria-expanded', 'false');
+        resetFilterMenuLayout();
 
         if (options.focusTrigger) {
           filterTrigger.focus();
@@ -1163,6 +1289,9 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
         isFilterMenuOpen = true;
         filterMenu.hidden = false;
         filterTrigger.setAttribute('aria-expanded', 'true');
+
+        syncFilterMenuLayout();
+        window.requestAnimationFrame(syncFilterMenuLayout);
       };
 
       projectDetailPanels.forEach((panel) => {
@@ -1264,6 +1393,14 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
           }
 
           closeFilterMenu({ focusTrigger: true });
+        });
+
+        window.addEventListener('resize', () => {
+          if (!isFilterMenuOpen) {
+            return;
+          }
+
+          window.requestAnimationFrame(syncFilterMenuLayout);
         });
 
         closeFilterMenu();

@@ -7,14 +7,23 @@ status: in-progress
 startDate: 'Feb 2024'
 endDate: 'present'
 stack:
+  - Terraform
+  - AWS Organizations
+  - OpenTelemetry
+  - Lambda
   - AWS EC2
   - AWS ECS
-  - AWS Organizations
-  - Terraform
+  - Cognito
+  - S3
+  - CloudFront
+  - SES
+  - SNS
+  - SQS
+  - WAF
+  - CloudMap
   - CodePipeline
   - Jenkins
   - Ansible
-  - OpenTelemetry
 impact:
   - Strengthened governance and security across shared multi-account AWS environments.
   - Improved deployment consistency across client applications with standardized CI/CD workflows.

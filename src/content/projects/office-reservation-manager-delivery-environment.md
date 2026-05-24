@@ -10,6 +10,9 @@ stack:
   - AWS CloudFormation
   - GitHub Actions
   - Mendix
+  - ECS
+  - EFS
+  - RDS
 impact:
   - Delivered a ready-to-use development environment for application teams.
   - Reduced manual provisioning work through CloudFormation automation.

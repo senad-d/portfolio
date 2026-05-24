@@ -9,7 +9,7 @@ endDate: 'Dec 2023'
 stack:
   - AWS ECS
   - AWS CloudFront
-  - AWS Networking
+  - AWS CodePipeline
   - Terraform
 impact:
   - Delivered a production-ready cloud environment aligned with launch milestones.
