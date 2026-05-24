@@ -621,6 +621,19 @@ test('contact links are present and correctly configured', async ({ page }) => {
     /^mailto:/,
   );
 
+  await expect(page.getByRole('link', { name: 'Upwork' })).toHaveAttribute(
+    'href',
+    /upwork\.com\/freelancers\/~017a10028c45b2150f/,
+  );
+  await expect(page.getByRole('link', { name: 'Upwork' })).toHaveAttribute(
+    'href',
+    /utm_source=portfolio/,
+  );
+  await expect(page.getByRole('link', { name: 'Upwork' })).toHaveAttribute(
+    'target',
+    '_blank',
+  );
+
   await expect(page.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
     'href',
     /github\.com\/senad-d/,

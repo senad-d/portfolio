@@ -60,7 +60,7 @@ Overall status: **Compliant** with the current implementation-aligned UX spec.
 | Experience timeline module | ✅ | `#experience` section and timeline markup in `src/pages/index.astro` |
 | Skills grouped module | ✅ | `skillGroups` rendered in `#skills` section |
 | Certifications + tools module | ✅ | `#certifications` section with credential metadata + tools rail |
-| Contact CTA set | ✅ | Email, GitHub, LinkedIn, YouTube links in `#contact` |
+| Contact CTA set | ✅ | Email, Upwork, LinkedIn, GitHub, YouTube links in `#contact` |
 | External link safety attributes | ✅ | `target="_blank"` + `rel="noopener noreferrer"` on external links |
 | Focus-visible treatment | ✅ | `.focus-ring:focus-visible` in `src/styles/global.css` |
 | Reduced motion support | ✅ | `@media (prefers-reduced-motion: reduce)` in `src/styles/global.css` |

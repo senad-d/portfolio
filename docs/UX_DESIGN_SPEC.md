@@ -181,11 +181,17 @@ If headings are missing, code applies fallback text derived from summary/impact.
 ### 5.8 Contact (`#contact`)
 
 - Response-time expectation text (usually within 24h).
+- Audience guidance cards:
+  - Hiring teams
+  - Freelance clients
+- A hook card clarifies first-contact value (quick review + practical next steps).
 - Actions:
   - Email (`mailto:`)
-  - GitHub (external)
+  - Upwork (external)
   - LinkedIn (external)
+  - GitHub (external)
   - YouTube (external)
+- Email and Upwork are visually emphasized as top-priority contact CTAs.
 - External links use `target="_blank"` + `rel="noopener noreferrer"`.
 
 ---

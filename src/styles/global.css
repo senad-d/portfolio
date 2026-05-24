@@ -1215,7 +1215,9 @@ a {
 }
 
 .button-primary,
-.button-secondary {
+.button-secondary,
+.button-upwork,
+.button-linkedin {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -1233,18 +1235,43 @@ a {
 }
 
 .button-primary {
-  border: 1px solid rgba(34, 211, 238, 0.4);
+  border: 1px solid rgba(34, 211, 238, 0.58);
   background: linear-gradient(
     140deg,
-    rgba(34, 211, 238, 0.92),
-    rgba(103, 232, 249, 0.88)
+    rgba(34, 211, 238, 0.32),
+    rgba(18, 26, 43, 0.94) 72%
   );
-  color: #03131f;
+  color: var(--text-100);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.18);
 }
 
 .button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.3);
+  border-color: rgba(103, 232, 249, 0.9);
+  color: #ecfeff;
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 239, 250, 0.2),
+    0 8px 24px rgba(34, 211, 238, 0.24);
+}
+
+.button-upwork {
+  border: 1px solid rgba(26, 171, 47, 0.56);
+  background: linear-gradient(
+    140deg,
+    rgba(20, 168, 0, 0.3),
+    rgba(18, 26, 43, 0.94) 72%
+  );
+  color: var(--text-100);
+  box-shadow: inset 0 0 0 1px rgba(26, 171, 47, 0.16);
+}
+
+.button-upwork:hover {
+  transform: translateY(-1px);
+  border-color: rgba(110, 231, 183, 0.86);
+  color: #ecfdf5;
+  box-shadow:
+    inset 0 0 0 1px rgba(110, 231, 183, 0.16),
+    0 8px 24px rgba(20, 168, 0, 0.24);
 }
 
 .button-secondary {
@@ -1256,6 +1283,26 @@ a {
 .button-secondary:hover {
   border-color: rgba(34, 211, 238, 0.5);
   color: #67e8f9;
+}
+
+.button-linkedin {
+  border: 1px solid rgba(10, 102, 194, 0.58);
+  background: linear-gradient(
+    140deg,
+    rgba(10, 102, 194, 0.32),
+    rgba(18, 26, 43, 0.94) 72%
+  );
+  color: var(--text-100);
+  box-shadow: inset 0 0 0 1px rgba(10, 102, 194, 0.18);
+}
+
+.button-linkedin:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 150, 235, 0.82);
+  color: #dbeafe;
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 183, 245, 0.18),
+    0 8px 24px rgba(10, 102, 194, 0.24);
 }
 
 .project-filters {
