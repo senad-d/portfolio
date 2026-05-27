@@ -122,12 +122,11 @@ h3 {
   mask-image: linear-gradient(180deg, black 0%, black 92%, transparent 100%);
 }
 
-.signal-network {
+.signal-canvas {
   pointer-events: none;
   position: absolute;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
   opacity: 0.76;
   -webkit-mask-image: linear-gradient(
     90deg,
@@ -475,167 +474,27 @@ h3 {
   }
 }
 
-/* ─── Signal packet: directional comet (head → right at 0 deg, rotated by JS) ─── */
-.signal-dot {
-  position: absolute;
-  left: 0;
-  top: 0;
+/* ── Signal-dot CSS classes removed ──
+   Rendering is now canvas-based (see MainLayout.astro JS).
+   The .signal-route* rules below are legacy and kept for reference only. */
 
-  /* Trail body: elongated capsule, tapers toward the tail (left) */
-  width: var(--signal-dot-len, 22px);
-  height: var(--signal-dot-thick, 2.5px);
-  border-radius: 999px;
-
-  /* Gradient: transparent tail (left) → bright near-head (right) */
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(34, 211, 238, 0.03) 12%,
-    rgba(34, 211, 238, 0.28) 42%,
-    rgba(34, 211, 238, 0.72) 72%,
-    rgba(34, 211, 238, 0.88) 92%,
-    rgba(34, 211, 238, 0.55) 100%
-  );
-
-  opacity: var(--signal-dot-opacity, 0.75);
-  will-change: transform, opacity;
-  animation: signal-dot-presence var(--signal-dot-presence-duration, 6s)
-    ease-in-out infinite;
-  animation-delay: var(--signal-dot-presence-delay, 0s);
-}
-
-/* Bright leading-edge node — the signal "head" */
-.signal-dot::after {
-  content: '';
-  position: absolute;
-  right: calc(var(--signal-dot-thick, 2.5px) * -0.6);
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--signal-head-size, 5.5px);
-  height: var(--signal-head-size, 5.5px);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(195, 248, 255, 0.90) 32%,
-    rgba(34, 211, 238, 0.65) 62%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 var(--signal-dot-glow, 11px) rgba(34, 211, 238, 0.92),
-    0 0 calc(var(--signal-dot-glow, 11px) * 2.2) rgba(34, 211, 238, 0.42),
-    0 0 calc(var(--signal-dot-glow, 11px) * 3.8) rgba(34, 211, 238, 0.16);
-}
-
-/* ── Violet variant ── */
-.signal-dot--violet {
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(139, 92, 246, 0.03) 12%,
-    rgba(139, 92, 246, 0.28) 42%,
-    rgba(139, 92, 246, 0.72) 72%,
-    rgba(139, 92, 246, 0.88) 92%,
-    rgba(139, 92, 246, 0.55) 100%
-  );
-}
-
-.signal-dot--violet::after {
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(225, 200, 255, 0.88) 32%,
-    rgba(139, 92, 246, 0.62) 62%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 var(--signal-dot-glow, 11px) rgba(139, 92, 246, 0.88),
-    0 0 calc(var(--signal-dot-glow, 11px) * 2.2) rgba(139, 92, 246, 0.40),
-    0 0 calc(var(--signal-dot-glow, 11px) * 3.8) rgba(139, 92, 246, 0.15);
-}
-
-/* ── Amber / warm-signal variant ── */
-.signal-dot--amber {
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(251, 146, 60, 0.03) 12%,
-    rgba(251, 146, 60, 0.26) 42%,
-    rgba(251, 146, 60, 0.70) 72%,
-    rgba(251, 191, 36, 0.88) 92%,
-    rgba(251, 191, 36, 0.52) 100%
-  );
-}
-
-.signal-dot--amber::after {
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 240, 180, 0.90) 32%,
-    rgba(251, 146, 60, 0.65) 62%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 var(--signal-dot-glow, 11px) rgba(251, 146, 60, 0.88),
-    0 0 calc(var(--signal-dot-glow, 11px) * 2.2) rgba(251, 146, 60, 0.38),
-    0 0 calc(var(--signal-dot-glow, 11px) * 3.8) rgba(251, 146, 60, 0.14);
-}
-
-/* ── Large packet variant (~15 % of signals) ── */
-.signal-dot--lg {
-  --signal-dot-len: 34px;
-  --signal-dot-thick: 3.5px;
-  --signal-dot-glow: 14px;
-  --signal-head-size: 8px;
-}
-
-/* ── Micro packet variant (~15 % of signals) ── */
-.signal-dot--sm {
-  --signal-dot-len: 13px;
-  --signal-dot-thick: 1.8px;
-  --signal-dot-glow: 7px;
-  --signal-head-size: 3.8px;
-}
 
 @keyframes signal-dot-presence {
-  0% {
-    opacity: var(--signal-dot-min-opacity, 0.16);
-  }
-
-  24% {
-    opacity: var(--signal-dot-opacity, 0.75);
-  }
-
-  62% {
-    opacity: var(--signal-dot-cruise-opacity, 0.58);
-  }
-
-  100% {
-    opacity: var(--signal-dot-min-opacity, 0.16);
-  }
+  /* Kept for potential future use */
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @media (max-width: 1023px) {
-  .signal-network {
+  .signal-canvas {
     opacity: 0.62;
   }
 }
 
 @media (max-width: 640px) {
-  .signal-network {
+  .signal-canvas {
     opacity: 0.54;
-  }
-
-  .signal-dot {
-    --signal-dot-glow: 7px;
-    --signal-dot-len: 16px;
-    --signal-head-size: 4.5px;
-  }
-
-  .signal-dot--lg {
-    --signal-dot-len: 24px;
-    --signal-dot-glow: 10px;
-    --signal-head-size: 6px;
   }
 }
 
