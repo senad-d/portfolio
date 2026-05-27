@@ -158,11 +158,7 @@ const navLinks = [
           trail: Array<{ x: number; y: number }>;
         }
 
-        const SIGNAL_RGB: Record<SignalColor, readonly [number, number, number]> = {
-          cyan:   [34,  211, 238],
-          violet: [139, 92,  246],
-          amber:  [251, 146, 60 ],
-        };
+        // SIGNAL_RGB (raw tuples) removed — head rendering now uses SIGNAL_RGB_STR + globalAlpha
 
         // Trail point recorded every TRAIL_STEP px of movement (sparsification).
         // Reduces stored points ~4× vs one-per-frame, cutting draw calls proportionally.
@@ -243,12 +239,7 @@ const navLinks = [
         const resizeSignalCanvas = () => {
           if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
           sceneWidth  = window.innerWidth;
-          sceneHeight = Math.max(
-            window.innerHeight,
-            document.documentElement.scrollHeight,
-            document.body.scrollHeight,
-          );
-          // Cap DPR: mobile at 1.5 (vs 3 native) cuts pixel area ~4×
+          sceneHeight = window.innerHeight; // viewport only — never full page scroll height
           sceneDpr = Math.min(window.devicePixelRatio || 1, isLiteMode ? 1.5 : 2);
           signalCanvas.width  = sceneWidth  * sceneDpr;
           signalCanvas.height = sceneHeight * sceneDpr;
@@ -364,38 +355,34 @@ const navLinks = [
 
         const drawSignal = (dot: SignalDot) => {
           if (!signalCtx) return;
-          const [r, g, b] = SIGNAL_RGB[dot.color];
           const cfg = TRAIL_CFG[dot.size];
           const { opacity } = dot;
 
           drawTrail(dot); // resets globalAlpha to 1
 
-          // Outer glow — skip on lite mode (one fewer createRadialGradient per dot per frame)
+          // Head: layered arcs — no createRadialGradient() per frame
+          // Outer ambient glow (desktop only)
           if (!isLiteMode) {
-            const glowR    = cfg.headGlow * 2.0;
-            const outerGrd = signalCtx.createRadialGradient(
-              dot.x, dot.y, 0, dot.x, dot.y, glowR,
-            );
-            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${opacity * 0.30})`);
-            outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
-            signalCtx.fillStyle = outerGrd;
+            signalCtx.globalAlpha = opacity * 0.18;
+            signalCtx.fillStyle   = SIGNAL_RGB_STR[dot.color];
             signalCtx.beginPath();
-            signalCtx.arc(dot.x, dot.y, glowR, 0, Math.PI * 2);
+            signalCtx.arc(dot.x, dot.y, cfg.headGlow * 1.9, 0, Math.PI * 2);
             signalCtx.fill();
           }
-
-          // Bright core (always rendered)
-          const coreR   = cfg.headSize * 1.4;
-          const coreGrd = signalCtx.createRadialGradient(
-            dot.x, dot.y, 0, dot.x, dot.y, coreR,
-          );
-          coreGrd.addColorStop(0,    `rgba(255,255,255,${opacity * 0.96})`);
-          coreGrd.addColorStop(0.38, `rgba(${r},${g},${b},${opacity * 0.85})`);
-          coreGrd.addColorStop(1,    'rgba(0,0,0,0)');
-          signalCtx.fillStyle = coreGrd;
+          // Colour halo
+          signalCtx.globalAlpha = opacity * 0.72;
+          signalCtx.fillStyle   = SIGNAL_RGB_STR[dot.color];
           signalCtx.beginPath();
-          signalCtx.arc(dot.x, dot.y, coreR, 0, Math.PI * 2);
+          signalCtx.arc(dot.x, dot.y, cfg.headSize * 1.15, 0, Math.PI * 2);
           signalCtx.fill();
+          // White core
+          signalCtx.globalAlpha = opacity * 0.92;
+          signalCtx.fillStyle   = '#fff';
+          signalCtx.beginPath();
+          signalCtx.arc(dot.x, dot.y, cfg.headSize * 0.42, 0, Math.PI * 2);
+          signalCtx.fill();
+
+          signalCtx.globalAlpha = 1;
         };
 
         const createSignalDot = (existingDots: SignalDot[]): SignalDot => {
@@ -498,15 +485,18 @@ const navLinks = [
         const rebuildSignals = () => {
           if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
 
-          // Detect lite mode before resizing so DPR cap is applied correctly
-          isLiteMode = sceneWidth < 768;
+          // Respect reduced-motion preference — skip animation entirely
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+          // Read current viewport width before anything else
+          sceneWidth    = window.innerWidth;
+          isLiteMode    = sceneWidth < 768;
           liteFrameInterval = isLiteMode ? 1000 / 30 : 0;
 
           window.cancelAnimationFrame(signalFrameId);
           signalDots = [];
-          resizeSignalCanvas(); // uses isLiteMode for DPR cap
+          resizeSignalCanvas();
 
-          // Fewer dots on mobile — each dot is expensive (trail draw + head gradient)
           const dotCount =
             sceneWidth >= 1280 ? 80
             : sceneWidth >= 1024 ? 60
