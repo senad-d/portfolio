@@ -244,7 +244,8 @@ const navLinks = [
         const resizeSignalCanvas = () => {
           if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
           sceneWidth  = window.innerWidth;
-          sceneHeight = window.innerHeight; // viewport only — never full page scroll height
+          sceneHeight = window.innerHeight;
+          worldHeight = Math.max(sceneHeight, document.documentElement.scrollHeight);
           sceneDpr = Math.min(window.devicePixelRatio || 1, isLiteMode ? 1.5 : 2);
           signalCanvas.width  = sceneWidth  * sceneDpr;
           signalCanvas.height = sceneHeight * sceneDpr;
@@ -258,7 +259,7 @@ const navLinks = [
             (dot.direction === 'left'  && dot.x <= GRID_SIZE + GRID_OFFSET) ||
             (dot.direction === 'right' && dot.x >= sceneWidth  - GRID_SIZE + GRID_OFFSET) ||
             (dot.direction === 'up'    && dot.y <= GRID_SIZE + GRID_OFFSET) ||
-            (dot.direction === 'down'  && dot.y >= sceneHeight - GRID_SIZE + GRID_OFFSET);
+            (dot.direction === 'down'  && dot.y >= worldHeight - GRID_SIZE + GRID_OFFSET);
 
           if (forceTurn || Math.random() < dot.turnChance) {
             dot.direction = Math.random() < 0.5
@@ -273,14 +274,13 @@ const navLinks = [
 
         const wrapDot = (dot: SignalDot) => {
           const outX = dot.x < -EDGE_BUFFER || dot.x > sceneWidth  + EDGE_BUFFER;
-          const outY = dot.y < -EDGE_BUFFER || dot.y > sceneHeight + EDGE_BUFFER;
+          const outY = dot.y < -EDGE_BUFFER || dot.y > worldHeight + EDGE_BUFFER;
           if (outX || outY) {
-            // Erase trail so the signal doesn't draw a streak across the screen
             dot.trail.length = 0;
-            if (dot.x < -EDGE_BUFFER)                dot.x = sceneWidth  + EDGE_BUFFER;
-            else if (dot.x > sceneWidth  + EDGE_BUFFER) dot.x = -EDGE_BUFFER;
-            if (dot.y < -EDGE_BUFFER)                dot.y = sceneHeight + EDGE_BUFFER;
-            else if (dot.y > sceneHeight + EDGE_BUFFER) dot.y = -EDGE_BUFFER;
+            if (dot.x < -EDGE_BUFFER)                   dot.x = sceneWidth  + EDGE_BUFFER;
+            else if (dot.x > sceneWidth  + EDGE_BUFFER)  dot.x = -EDGE_BUFFER;
+            if (dot.y < -EDGE_BUFFER)                    dot.y = worldHeight + EDGE_BUFFER;
+            else if (dot.y > worldHeight + EDGE_BUFFER)  dot.y = -EDGE_BUFFER;
           }
         };
 
@@ -481,13 +481,21 @@ const navLinks = [
             Math.max(0.001, (timestamp - signalLastFrame) / 1000),
           );
           signalLastFrame = timestamp;
+
+          const scrollY = window.scrollY;
           signalCtx.clearRect(0, 0, sceneWidth, sceneHeight);
+          signalCtx.save();
+          signalCtx.translate(0, -scrollY); // world → screen coords
+
           for (const dot of signalDots) {
-            updateDot(dot, deltaSeconds); // no O(N²) separation factor per frame
+            updateDot(dot, deltaSeconds);
             updateOpacity(dot, deltaSeconds);
             updateTrail(dot);
+            if (dot.y < scrollY - 60 || dot.y > scrollY + sceneHeight + 60) continue;
             drawSignal(dot);
           }
+
+          signalCtx.restore();
           signalFrameId = window.requestAnimationFrame(animateSignals);
         };
 
@@ -526,6 +534,9 @@ const navLinks = [
         };
 
         rebuildSignals();
+        // Rebuild once more after full page load so worldHeight reflects
+        // final layout (fonts, images may shift it from the initial value).
+        window.addEventListener('load', rebuildSignals, { once: true });
 
         window.addEventListener('resize', () => {
           window.clearTimeout(signalResizeTimer);
