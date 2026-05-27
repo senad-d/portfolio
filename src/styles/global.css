@@ -786,8 +786,8 @@ a {
     font-size: 0.8rem;
     font-weight: 500;
     border-radius: 999px;
-    border-color: rgba(37, 50, 74, 0.7);
-    background: rgba(18, 26, 43, 0.55);
+    border-color: transparent;
+    background: transparent;
     color: var(--text-200);
     letter-spacing: 0.01em;
   }
