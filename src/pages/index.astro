@@ -1024,8 +1024,18 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
           return;
         }
 
-        panelAnimations.delete(panel);
+        // Delete from the map AFTER cancelling so that the animation's own
+        // cancel-event handler can still run its guard check.  We then
+        // forcibly clear any inline styles here because the handler's guard
+        // (`panelAnimations.get(panel) !== animation`) would now evaluate
+        // correctly, but belt-and-suspenders: ensure styles are always reset.
         animation.cancel();
+        panelAnimations.delete(panel);
+
+        const content = getPanelContent(panel);
+        if (content) {
+          clearPanelInlineStyles(content);
+        }
       };
 
       const expandPanel = (
