@@ -164,14 +164,31 @@ const navLinks = [
           amber:  [251, 146, 60 ],
         };
 
+        // Trail point recorded every TRAIL_STEP px of movement (sparsification).
+        // Reduces stored points ~4× vs one-per-frame, cutting draw calls proportionally.
+        const TRAIL_STEP    = 2;               // px between recorded trail points
+        const TRAIL_STEP_SQ = TRAIL_STEP * TRAIL_STEP;
+
+        // maxPts = visual trail length / TRAIL_STEP
         const TRAIL_CFG: Record<
           SignalSize,
-          { maxLen: number; width: number; headSize: number; headGlow: number }
+          { maxPts: number; maxPtsLite: number; width: number; headSize: number; headGlow: number }
         > = {
-          sm: { maxLen: 16, width: 1.4, headSize: 3.0, headGlow:  7 },
-          md: { maxLen: 28, width: 2.4, headSize: 5.5, headGlow: 12 },
-          lg: { maxLen: 42, width: 3.4, headSize: 8.0, headGlow: 17 },
+          sm: { maxPts:  8, maxPtsLite:  4, width: 1.4, headSize: 3.0, headGlow:  7 },
+          md: { maxPts: 14, maxPtsLite:  7, width: 2.4, headSize: 5.5, headGlow: 12 },
+          lg: { maxPts: 21, maxPtsLite: 10, width: 3.4, headSize: 8.0, headGlow: 17 },
         };
+
+        // Pre-cached solid colour strings — avoids rgba() string building in the hot path.
+        const SIGNAL_RGB_STR: Record<SignalColor, string> = {
+          cyan:   'rgb(34,211,238)',
+          violet: 'rgb(139,92,246)',
+          amber:  'rgb(251,146,60)',
+        };
+
+        // Buckets reduce draw calls from ~N (one per point) to a fixed small number.
+        const TRAIL_BUCKETS_FULL = 6;  // desktop: smooth fade in 6 paths
+        const TRAIL_BUCKETS_LITE = 3;  // mobile:  3 paths, imperceptibly coarser
 
         const randomInRange = (min: number, max: number) =>
           Math.random() * (max - min) + min;
@@ -287,22 +304,22 @@ const navLinks = [
           wrapDot(dot);
         };
 
-        // Record the current position into the path history and trim to maxLen px.
-        // Lite mode uses shorter trails to reduce per-frame iteration cost.
+        // Record the current position only when the dot has moved >= TRAIL_STEP px
+        // from the last recorded point (sparsification).  Trim by max point count
+        // using shift() — no per-frame array allocation unlike the old slice() approach.
         const updateTrail = (dot: SignalDot) => {
-          dot.trail.push({ x: dot.x, y: dot.y });
-          const maxLen = TRAIL_CFG[dot.size].maxLen * (isLiteMode ? 0.55 : 1);
-          let pathLen = 0;
-          for (let i = dot.trail.length - 1; i > 0; i--) {
-            pathLen += Math.hypot(
-              dot.trail[i].x - dot.trail[i - 1].x,
-              dot.trail[i].y - dot.trail[i - 1].y,
-            );
-            if (pathLen >= maxLen) {
-              dot.trail = dot.trail.slice(i);
-              return;
-            }
+          const trail = dot.trail;
+          if (trail.length > 0) {
+            const last = trail[trail.length - 1];
+            const dx = dot.x - last.x;
+            const dy = dot.y - last.y;
+            if (dx * dx + dy * dy < TRAIL_STEP_SQ) return; // not far enough yet
           }
+          trail.push({ x: dot.x, y: dot.y });
+          const maxPts = isLiteMode
+            ? TRAIL_CFG[dot.size].maxPtsLite
+            : TRAIL_CFG[dot.size].maxPts;
+          if (trail.length > maxPts) trail.shift();
         };
 
         const updateOpacity = (dot: SignalDot, deltaSeconds: number) => {
@@ -313,84 +330,53 @@ const navLinks = [
             minOp + (dot.baseOpacity - minOp) * (0.5 + 0.5 * Math.sin(dot.opacityPhase));
         };
 
-        // ── Trail helpers ──────────────────────────────────────────────────
-        //
-        // DESKTOP: one stroke() per trail segment → smooth per-pixel fade.
-        // LITE:    4 bucketed paths → ~8× fewer draw calls, same grid-following
-        //          behaviour, visually indistinguishable at mobile resolution.
-        const LITE_BUCKETS = 4;
+        // Unified bucketed trail renderer — draws the trail as a small fixed number
+        // of batched paths (TRAIL_BUCKETS_FULL on desktop, TRAIL_BUCKETS_LITE on mobile)
+        // instead of one stroke() per point.  Uses globalAlpha so strokeStyle is set
+        // once per dot (no per-segment string allocation).
+        const drawTrail = (dot: SignalDot) => {
+          const { trail, opacity, size } = dot;
+          if (trail.length < 2 || !signalCtx) return;
+          const n       = trail.length;
+          const cfg     = TRAIL_CFG[size];
+          const buckets = isLiteMode ? TRAIL_BUCKETS_LITE : TRAIL_BUCKETS_FULL;
 
-        const drawTrailFull = (
-          r: number, g: number, b: number,
-          cfg: { width: number },
-          trail: Array<{ x: number; y: number }>,
-          opacity: number,
-        ) => {
-          const n = trail.length;
-          signalCtx!.lineCap  = 'round';
-          signalCtx!.lineJoin = 'round';
-          for (let i = 1; i < n; i++) {
-            const t     = i / n;
-            const alpha = t * t * opacity * 0.88;
-            const lw    = cfg.width * (0.18 + 0.82 * t);
-            signalCtx!.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
-            signalCtx!.lineWidth   = lw;
-            signalCtx!.beginPath();
-            signalCtx!.moveTo(trail[i - 1].x, trail[i - 1].y);
-            signalCtx!.lineTo(trail[i].x,     trail[i].y);
-            signalCtx!.stroke();
-          }
-        };
+          signalCtx.lineCap    = 'round';
+          signalCtx.lineJoin   = 'round';
+          signalCtx.strokeStyle = SIGNAL_RGB_STR[dot.color]; // set once per dot
 
-        const drawTrailLite = (
-          r: number, g: number, b: number,
-          cfg: { width: number },
-          trail: Array<{ x: number; y: number }>,
-          opacity: number,
-        ) => {
-          const n = trail.length;
-          signalCtx!.lineCap  = 'round';
-          signalCtx!.lineJoin = 'round';
-          for (let bucket = 0; bucket < LITE_BUCKETS; bucket++) {
-            const si = Math.floor((bucket / LITE_BUCKETS) * (n - 1));
-            const ei = Math.floor(((bucket + 1) / LITE_BUCKETS) * (n - 1));
+          for (let bucket = 0; bucket < buckets; bucket++) {
+            const si = Math.floor((bucket       / buckets) * (n - 1));
+            const ei = Math.floor(((bucket + 1) / buckets) * (n - 1));
             if (ei <= si) continue;
-            const t     = (bucket + 1) / LITE_BUCKETS;
-            const alpha = t * t * opacity * 0.88;
-            const lw    = cfg.width * (0.18 + 0.82 * t);
-            signalCtx!.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
-            signalCtx!.lineWidth   = lw;
-            signalCtx!.beginPath();
-            signalCtx!.moveTo(trail[si].x, trail[si].y);
+            const t = (bucket + 1) / buckets;
+            signalCtx.globalAlpha = t * t * opacity * 0.88; // quadratic fade
+            signalCtx.lineWidth   = cfg.width * (0.18 + 0.82 * t);
+            signalCtx.beginPath();
+            signalCtx.moveTo(trail[si].x, trail[si].y);
             for (let i = si + 1; i <= ei; i++) {
-              signalCtx!.lineTo(trail[i].x, trail[i].y);
+              signalCtx.lineTo(trail[i].x, trail[i].y);
             }
-            signalCtx!.stroke();
+            signalCtx.stroke();
           }
+          signalCtx.globalAlpha = 1; // reset for head drawing
         };
 
         const drawSignal = (dot: SignalDot) => {
           if (!signalCtx) return;
           const [r, g, b] = SIGNAL_RGB[dot.color];
-          const cfg  = TRAIL_CFG[dot.size];
-          const { trail, opacity } = dot;
+          const cfg = TRAIL_CFG[dot.size];
+          const { opacity } = dot;
 
-          // ── Trail ────────────────────────────────────────────────────────
-          if (trail.length >= 2) {
-            if (isLiteMode) {
-              drawTrailLite(r, g, b, cfg, trail, opacity);
-            } else {
-              drawTrailFull(r, g, b, cfg, trail, opacity);
-            }
-          }
+          drawTrail(dot); // resets globalAlpha to 1
 
-          // ── Head: outer glow (desktop only — too costly on mobile) ───────
+          // Outer glow — skip on lite mode (one fewer createRadialGradient per dot per frame)
           if (!isLiteMode) {
             const glowR    = cfg.headGlow * 2.0;
             const outerGrd = signalCtx.createRadialGradient(
               dot.x, dot.y, 0, dot.x, dot.y, glowR,
             );
-            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${(opacity * 0.30).toFixed(3)})`);
+            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${opacity * 0.30})`);
             outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
             signalCtx.fillStyle = outerGrd;
             signalCtx.beginPath();
@@ -398,13 +384,13 @@ const navLinks = [
             signalCtx.fill();
           }
 
-          // ── Head: bright core (always rendered) ──────────────────────────
+          // Bright core (always rendered)
           const coreR   = cfg.headSize * 1.4;
           const coreGrd = signalCtx.createRadialGradient(
             dot.x, dot.y, 0, dot.x, dot.y, coreR,
           );
-          coreGrd.addColorStop(0,    `rgba(255,255,255,${(opacity * 0.96).toFixed(3)})`);
-          coreGrd.addColorStop(0.38, `rgba(${r},${g},${b},${(opacity * 0.85).toFixed(3)})`);
+          coreGrd.addColorStop(0,    `rgba(255,255,255,${opacity * 0.96})`);
+          coreGrd.addColorStop(0.38, `rgba(${r},${g},${b},${opacity * 0.85})`);
           coreGrd.addColorStop(1,    'rgba(0,0,0,0)');
           signalCtx.fillStyle = coreGrd;
           signalCtx.beginPath();
@@ -470,15 +456,22 @@ const navLinks = [
         let liteFrameInterval        = 0;     // ms; 0 = uncapped (desktop)
 
         const getSeparationFactor = (dot: SignalDot) => {
+          // O(N²) — only used during dot creation for initial placement spacing;
+          // removed from the per-frame animation loop.
           let factor = 1;
+          const t1sq = (GRID_SIZE * 0.95) * (GRID_SIZE * 0.95);
+          const t2sq = (GRID_SIZE * 1.50) * (GRID_SIZE * 1.50);
           for (const other of signalDots) {
             if (other === dot) continue;
-            const dist = Math.hypot(dot.x - other.x, dot.y - other.y);
-            if (dist < GRID_SIZE * 0.95)       factor = Math.min(factor, 0.3);
-            else if (dist < GRID_SIZE * 1.5)   factor = Math.min(factor, 0.68);
+            const dx = dot.x - other.x;
+            const dy = dot.y - other.y;
+            const dSq = dx * dx + dy * dy;
+            if (dSq < t1sq) { factor = Math.min(factor, 0.3); break; }
+            else if (dSq < t2sq) factor = Math.min(factor, 0.68);
           }
           return factor;
         };
+        void getSeparationFactor; // kept for potential future use
 
         const animateSignals = (timestamp: number) => {
           if (!signalCtx) return;
@@ -494,7 +487,7 @@ const navLinks = [
           signalLastFrame = timestamp;
           signalCtx.clearRect(0, 0, sceneWidth, sceneHeight);
           for (const dot of signalDots) {
-            updateDot(dot, deltaSeconds * getSeparationFactor(dot));
+            updateDot(dot, deltaSeconds); // no O(N²) separation factor per frame
             updateOpacity(dot, deltaSeconds);
             updateTrail(dot);
             drawSignal(dot);
