@@ -839,6 +839,8 @@ a {
 
 .card-surface {
   border: 1px solid rgba(37, 50, 74, 0.85);
+  border-left-width: 2px;
+  border-left-color: rgba(34, 211, 238, 0.35);
   border-radius: var(--radius-lg);
   background: linear-gradient(
     160deg,
@@ -1885,12 +1887,6 @@ a {
 
 .button-primary:hover {
   animation: none;
-}
-
-/* Hero value cards: left accent border */
-#home ul > li.card-surface {
-  border-left-width: 2px;
-  border-left-color: rgba(34, 211, 238, 0.35);
 }
 
 /* Experience timeline: highlight current (first) entry dot */
