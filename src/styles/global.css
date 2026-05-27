@@ -1797,3 +1797,163 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── Modern UI Enhancements ─────────────────────────────────────── */
+
+/* Hero title: gradient text for visual impact */
+.hero-title {
+  background: linear-gradient(
+    125deg,
+    #f0f4ff 30%,
+    #a5f3fc 68%,
+    #67e8f9 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+/* Section h2 headings: cyan→violet left accent bar */
+.section-block > h2 {
+  position: relative;
+  padding-left: 0.875rem;
+}
+
+.section-block > h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.18em;
+  bottom: 0.18em;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--accent-cyan) 0%,
+    var(--accent-violet) 100%
+  );
+  opacity: 0.9;
+}
+
+/* Project grid: 2-column layout on large screens */
+@media (min-width: 1024px) {
+  .project-grid {
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+  }
+}
+
+/* Project cards: lane-based top border accent */
+.project-card[data-project-lane='professional'] {
+  border-top-width: 2px;
+  border-top-color: rgba(34, 211, 238, 0.55);
+}
+
+.project-card[data-project-lane='personal'] {
+  border-top-width: 2px;
+  border-top-color: rgba(139, 92, 246, 0.55);
+}
+
+/* Project card title: subtle gradient */
+.project-card-title {
+  background: linear-gradient(125deg, #e8eeff 60%, #a5f3fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Primary CTA: subtle breathing glow animation */
+@keyframes cta-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(34, 211, 238, 0.18),
+      0 0 12px rgba(34, 211, 238, 0.1);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(34, 211, 238, 0.34),
+      0 0 24px rgba(34, 211, 238, 0.22),
+      0 0 4px rgba(34, 211, 238, 0.15);
+  }
+}
+
+.button-primary {
+  animation: cta-glow-pulse 3.5s ease-in-out infinite;
+}
+
+.button-primary:hover {
+  animation: none;
+}
+
+/* Hero value cards: left accent border */
+#home ul > li.card-surface {
+  border-left-width: 2px;
+  border-left-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Experience timeline: highlight current (first) entry dot */
+.experience-entry:first-child::before {
+  border-color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.18);
+  box-shadow:
+    0 0 0 3px rgba(11, 18, 32, 0.85),
+    0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+/* Experience timeline: "current" label on first entry */
+.experience-entry:first-child .experience-period {
+  border-color: rgba(34, 211, 238, 0.5);
+  color: #67e8f9;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.16),
+    rgba(18, 26, 43, 0.8)
+  );
+}
+
+/* Pills: lane-colored pills */
+.pill-chip[data-lane='professional'] {
+  border-color: rgba(34, 211, 238, 0.45);
+  color: #67e8f9;
+  background: rgba(34, 211, 238, 0.08);
+}
+
+.pill-chip[data-lane='personal'] {
+  border-color: rgba(139, 92, 246, 0.45);
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.08);
+}
+
+/* Section kicker: slightly larger spacing */
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-kicker::before {
+  content: '';
+  display: inline-block;
+  width: 1.5rem;
+  height: 1px;
+  background: var(--accent-cyan);
+  opacity: 0.7;
+}
+
+/* Improved card glass depth */
+.card-surface {
+  backdrop-filter: blur(2px);
+}
+
+/* Skill ledger row: improved title color */
+.skills-ledger-title {
+  color: var(--text-100);
+}
+
+/* Footer-like subtle bottom border on contact section */
+#contact {
+  border-bottom: 1px solid rgba(37, 50, 74, 0.4);
+  padding-bottom: calc(var(--section-space) + 1rem);
+}

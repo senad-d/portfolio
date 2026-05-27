@@ -309,7 +309,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
     <p class="section-kicker">DevOps & Cloud Engineer</p>
     <h1
       id="home-title"
-      class="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl"
+      class="hero-title max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl"
     >
       Building reliable cloud platforms with practical automation
     </h1>
@@ -518,7 +518,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
               .join('|')}
           >
             <div class="project-card-meta">
-              <span class="pill-chip">{laneLabel(project.data.lane)}</span>
+              <span class="pill-chip" data-lane={project.data.lane}>{laneLabel(project.data.lane)}</span>
               <span class="project-card-date">
                 {dateRange(project.data.startDate, project.data.endDate)}
               </span>
