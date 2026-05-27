@@ -238,6 +238,7 @@ const navLinks = [
 
         let sceneWidth  = window.innerWidth;
         let sceneHeight = window.innerHeight;
+        let worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
         let sceneDpr    = window.devicePixelRatio || 1;
 
         const resizeSignalCanvas = () => {
@@ -400,8 +401,8 @@ const navLinks = [
               ? randomInRange(-EDGE_BUFFER, sceneWidth + EDGE_BUFFER)
               : randomGridCoordinate(sceneWidth);
             const y = horizontalStart
-              ? randomGridCoordinate(sceneHeight)
-              : randomInRange(-EDGE_BUFFER, sceneHeight + EDGE_BUFFER);
+              ? randomGridCoordinate(worldHeight)
+              : randomInRange(-EDGE_BUFFER, worldHeight + EDGE_BUFFER);
             const direction: Direction = horizontalStart
               ? (Math.random() < 0.5 ? 'left' : 'right')
               : (Math.random() < 0.5 ? 'up'   : 'down');
@@ -496,21 +497,26 @@ const navLinks = [
           // Respect reduced-motion preference — skip animation entirely
           if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-          // Read current viewport width before anything else
-          sceneWidth    = window.innerWidth;
-          isLiteMode    = sceneWidth < 768;
+          // Rebuild world size before computing dot count
+          sceneWidth  = window.innerWidth;
+          worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
+          isLiteMode  = sceneWidth < 768;
           liteFrameInterval = isLiteMode ? 1000 / 30 : 0;
 
           window.cancelAnimationFrame(signalFrameId);
           signalDots = [];
           resizeSignalCanvas();
 
-          const dotCount =
+          // Scale dot count with page height so density stays consistent while scrolling.
+          // Capped at 3x the viewport base so very long pages stay performant.
+          const pageRatio = Math.min(worldHeight / sceneHeight, 3);
+          const baseDots  =
             sceneWidth >= 1280 ? 80
             : sceneWidth >= 1024 ? 60
             : sceneWidth >= 768  ? 40
             : sceneWidth >= 480  ? 22
             : 16;
+          const dotCount = Math.round(baseDots * pageRatio);
 
           for (let i = 0; i < dotCount; i += 1) {
             signalDots.push(createSignalDot(signalDots));
