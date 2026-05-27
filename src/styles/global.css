@@ -1838,13 +1838,6 @@ a {
   opacity: 0.9;
 }
 
-/* Project grid: 2-column layout on large screens */
-@media (min-width: 1024px) {
-  .project-grid {
-    grid-template-columns: repeat(2, 1fr);
-    align-items: start;
-  }
-}
 
 /* Project cards: lane-based top border accent */
 .project-card[data-project-lane='professional'] {
