@@ -519,11 +519,11 @@ const navLinks = [
           // Capped at 3x the viewport base so very long pages stay performant.
           const pageRatio = Math.min(worldHeight / sceneHeight, 3);
           const baseDots  =
-            sceneWidth >= 1280 ? 50
-            : sceneWidth >= 1024 ? 40
-            : sceneWidth >= 768  ? 30
-            : sceneWidth >= 480  ? 22
-            : 16;
+            sceneWidth >= 1280 ? 35
+            : sceneWidth >= 1024 ? 30
+            : sceneWidth >= 768  ? 25
+            : sceneWidth >= 480  ? 20
+            : 10;
           const dotCount = Math.round(baseDots * pageRatio);
 
           for (let i = 0; i < dotCount; i += 1) {
