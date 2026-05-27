@@ -1405,6 +1405,22 @@ a {
   position: relative;
 }
 
+@media (max-width: 639px) {
+  .project-stack-wrapper {
+    position: static;
+  }
+
+  .project-filter-bar {
+    position: relative;
+  }
+
+  .project-filter-menu {
+    left: 0;
+    right: 0;
+    width: auto;
+  }
+}
+
 /* Stack filter trigger button */
 .project-stack-trigger {
   display: inline-flex;
