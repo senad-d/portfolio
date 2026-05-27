@@ -186,6 +186,13 @@ const navLinks = [
           return 'right';
         };
 
+        const directionToDeg = (direction: Direction): number => {
+          if (direction === 'right') return 0;
+          if (direction === 'down') return 90;
+          if (direction === 'left') return 180;
+          return 270;
+        };
+
         const reverseDirection = (direction: Direction): Direction => {
           if (direction === 'right') {
             return 'left';
@@ -287,7 +294,8 @@ const navLinks = [
         };
 
         const syncDotPosition = (dot: SignalDot) => {
-          dot.element.style.transform = `translate3d(${dot.x.toFixed(2)}px, ${dot.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
+          const deg = directionToDeg(dot.direction);
+          dot.element.style.transform = `translate3d(${dot.x.toFixed(2)}px, ${dot.y.toFixed(2)}px, 0) translate(-50%, -50%) rotate(${deg}deg)`;
         };
 
         const updateDot = (dot: SignalDot, deltaSeconds: number) => {
@@ -355,8 +363,20 @@ const navLinks = [
 
           const isDim = Math.random() < 0.3;
 
-          if (Math.random() < 0.34) {
+          /* Colour variants: ~56% cyan, ~30% violet, ~14% amber */
+          const colorRoll = Math.random();
+          if (colorRoll < 0.30) {
             element.classList.add('signal-dot--violet');
+          } else if (colorRoll < 0.44) {
+            element.classList.add('signal-dot--amber');
+          }
+
+          /* Size variants: ~15% large, ~15% small, ~70% default */
+          const sizeRoll = Math.random();
+          if (sizeRoll < 0.15) {
+            element.classList.add('signal-dot--lg');
+          } else if (sizeRoll < 0.30) {
+            element.classList.add('signal-dot--sm');
           }
 
           const peakOpacity = isDim

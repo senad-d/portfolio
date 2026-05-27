@@ -999,12 +999,6 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
       let activeLaneFilter = 'all';
       let isFilterMenuOpen = false;
 
-      const laneFilterLabels: Record<string, string> = {
-        all: 'All lanes',
-        professional: 'Professional',
-        personal: 'Personal',
-      };
-
       const prefersReducedMotion = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
       ).matches;
