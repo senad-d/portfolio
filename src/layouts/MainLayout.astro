@@ -158,7 +158,11 @@ const navLinks = [
           trail: Array<{ x: number; y: number }>;
         }
 
-        // SIGNAL_RGB (raw tuples) removed — head rendering now uses SIGNAL_RGB_STR + globalAlpha
+        const SIGNAL_RGB: Record<SignalColor, readonly [number, number, number]> = {
+          cyan:   [34,  211, 238],
+          violet: [139, 92,  246],
+          amber:  [251, 146, 60 ],
+        };
 
         // Trail point recorded every TRAIL_STEP px of movement (sparsification).
         // Reduces stored points ~4× vs one-per-frame, cutting draw calls proportionally.
@@ -355,34 +359,38 @@ const navLinks = [
 
         const drawSignal = (dot: SignalDot) => {
           if (!signalCtx) return;
+          const [r, g, b] = SIGNAL_RGB[dot.color];
           const cfg = TRAIL_CFG[dot.size];
           const { opacity } = dot;
 
           drawTrail(dot); // resets globalAlpha to 1
 
-          // Head: layered arcs — no createRadialGradient() per frame
-          // Outer ambient glow (desktop only)
+          // Outer glow (skip on lite mode)
           if (!isLiteMode) {
-            signalCtx.globalAlpha = opacity * 0.18;
-            signalCtx.fillStyle   = SIGNAL_RGB_STR[dot.color];
+            const glowR    = cfg.headGlow * 2.0;
+            const outerGrd = signalCtx.createRadialGradient(
+              dot.x, dot.y, 0, dot.x, dot.y, glowR,
+            );
+            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${(opacity * 0.30).toFixed(3)})`);
+            outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            signalCtx.fillStyle = outerGrd;
             signalCtx.beginPath();
-            signalCtx.arc(dot.x, dot.y, cfg.headGlow * 1.9, 0, Math.PI * 2);
+            signalCtx.arc(dot.x, dot.y, glowR, 0, Math.PI * 2);
             signalCtx.fill();
           }
-          // Colour halo
-          signalCtx.globalAlpha = opacity * 0.72;
-          signalCtx.fillStyle   = SIGNAL_RGB_STR[dot.color];
-          signalCtx.beginPath();
-          signalCtx.arc(dot.x, dot.y, cfg.headSize * 1.15, 0, Math.PI * 2);
-          signalCtx.fill();
-          // White core
-          signalCtx.globalAlpha = opacity * 0.92;
-          signalCtx.fillStyle   = '#fff';
-          signalCtx.beginPath();
-          signalCtx.arc(dot.x, dot.y, cfg.headSize * 0.42, 0, Math.PI * 2);
-          signalCtx.fill();
 
-          signalCtx.globalAlpha = 1;
+          // Bright core with radial gradient (white centre → colour → transparent)
+          const coreR   = cfg.headSize * 1.4;
+          const coreGrd = signalCtx.createRadialGradient(
+            dot.x, dot.y, 0, dot.x, dot.y, coreR,
+          );
+          coreGrd.addColorStop(0,    `rgba(255,255,255,${(opacity * 0.96).toFixed(3)})`);
+          coreGrd.addColorStop(0.38, `rgba(${r},${g},${b},${(opacity * 0.85).toFixed(3)})`);
+          coreGrd.addColorStop(1,    'rgba(0,0,0,0)');
+          signalCtx.fillStyle = coreGrd;
+          signalCtx.beginPath();
+          signalCtx.arc(dot.x, dot.y, coreR, 0, Math.PI * 2);
+          signalCtx.fill();
         };
 
         const createSignalDot = (existingDots: SignalDot[]): SignalDot => {

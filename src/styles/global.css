@@ -106,7 +106,7 @@ h3 {
 .page-shell::before {
   content: '';
   pointer-events: none;
-  position: absolute;
+  position: fixed;   /* fixed so it stays in sync with the fixed signal canvas */
   inset: 0;
   z-index: -2;
   background-image:
