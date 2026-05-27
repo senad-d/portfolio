@@ -231,7 +231,8 @@ const navLinks = [
             document.documentElement.scrollHeight,
             document.body.scrollHeight,
           );
-          sceneDpr = window.devicePixelRatio || 1;
+          // Cap DPR: mobile at 1.5 (vs 3 native) cuts pixel area ~4×
+          sceneDpr = Math.min(window.devicePixelRatio || 1, isLiteMode ? 1.5 : 2);
           signalCanvas.width  = sceneWidth  * sceneDpr;
           signalCanvas.height = sceneHeight * sceneDpr;
           signalCanvas.style.width  = `${sceneWidth}px`;
@@ -287,9 +288,10 @@ const navLinks = [
         };
 
         // Record the current position into the path history and trim to maxLen px.
+        // Lite mode uses shorter trails to reduce per-frame iteration cost.
         const updateTrail = (dot: SignalDot) => {
           dot.trail.push({ x: dot.x, y: dot.y });
-          const maxLen = TRAIL_CFG[dot.size].maxLen;
+          const maxLen = TRAIL_CFG[dot.size].maxLen * (isLiteMode ? 0.55 : 1);
           let pathLen = 0;
           for (let i = dot.trail.length - 1; i > 0; i--) {
             pathLen += Math.hypot(
@@ -311,43 +313,92 @@ const navLinks = [
             minOp + (dot.baseOpacity - minOp) * (0.5 + 0.5 * Math.sin(dot.opacityPhase));
         };
 
+        // ── Trail helpers ──────────────────────────────────────────────────
+        //
+        // DESKTOP: one stroke() per trail segment → smooth per-pixel fade.
+        // LITE:    4 bucketed paths → ~8× fewer draw calls, same grid-following
+        //          behaviour, visually indistinguishable at mobile resolution.
+        const LITE_BUCKETS = 4;
+
+        const drawTrailFull = (
+          r: number, g: number, b: number,
+          cfg: { width: number },
+          trail: Array<{ x: number; y: number }>,
+          opacity: number,
+        ) => {
+          const n = trail.length;
+          signalCtx!.lineCap  = 'round';
+          signalCtx!.lineJoin = 'round';
+          for (let i = 1; i < n; i++) {
+            const t     = i / n;
+            const alpha = t * t * opacity * 0.88;
+            const lw    = cfg.width * (0.18 + 0.82 * t);
+            signalCtx!.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+            signalCtx!.lineWidth   = lw;
+            signalCtx!.beginPath();
+            signalCtx!.moveTo(trail[i - 1].x, trail[i - 1].y);
+            signalCtx!.lineTo(trail[i].x,     trail[i].y);
+            signalCtx!.stroke();
+          }
+        };
+
+        const drawTrailLite = (
+          r: number, g: number, b: number,
+          cfg: { width: number },
+          trail: Array<{ x: number; y: number }>,
+          opacity: number,
+        ) => {
+          const n = trail.length;
+          signalCtx!.lineCap  = 'round';
+          signalCtx!.lineJoin = 'round';
+          for (let bucket = 0; bucket < LITE_BUCKETS; bucket++) {
+            const si = Math.floor((bucket / LITE_BUCKETS) * (n - 1));
+            const ei = Math.floor(((bucket + 1) / LITE_BUCKETS) * (n - 1));
+            if (ei <= si) continue;
+            const t     = (bucket + 1) / LITE_BUCKETS;
+            const alpha = t * t * opacity * 0.88;
+            const lw    = cfg.width * (0.18 + 0.82 * t);
+            signalCtx!.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+            signalCtx!.lineWidth   = lw;
+            signalCtx!.beginPath();
+            signalCtx!.moveTo(trail[si].x, trail[si].y);
+            for (let i = si + 1; i <= ei; i++) {
+              signalCtx!.lineTo(trail[i].x, trail[i].y);
+            }
+            signalCtx!.stroke();
+          }
+        };
+
         const drawSignal = (dot: SignalDot) => {
           if (!signalCtx) return;
           const [r, g, b] = SIGNAL_RGB[dot.color];
           const cfg  = TRAIL_CFG[dot.size];
           const { trail, opacity } = dot;
 
-          // ── Trail: polyline drawn along the actual path history ──────────
+          // ── Trail ────────────────────────────────────────────────────────
           if (trail.length >= 2) {
-            const n = trail.length;
-            signalCtx.lineCap  = 'round';
-            signalCtx.lineJoin = 'round';
-            for (let i = 1; i < n; i++) {
-              const t     = i / n;                              // 0=oldest tail, 1=near head
-              const alpha = t * t * opacity * 0.88;            // quadratic fade toward tail
-              const lw    = cfg.width * (0.18 + 0.82 * t);    // taper: thin at tail
-              signalCtx.strokeStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
-              signalCtx.lineWidth   = lw;
-              signalCtx.beginPath();
-              signalCtx.moveTo(trail[i - 1].x, trail[i - 1].y);
-              signalCtx.lineTo(trail[i].x,     trail[i].y);
-              signalCtx.stroke();
+            if (isLiteMode) {
+              drawTrailLite(r, g, b, cfg, trail, opacity);
+            } else {
+              drawTrailFull(r, g, b, cfg, trail, opacity);
             }
           }
 
-          // ── Head: outer glow ─────────────────────────────────────────────
-          const glowR   = cfg.headGlow * 2.0;
-          const outerGrd = signalCtx.createRadialGradient(
-            dot.x, dot.y, 0, dot.x, dot.y, glowR,
-          );
-          outerGrd.addColorStop(0, `rgba(${r},${g},${b},${(opacity * 0.30).toFixed(3)})`);
-          outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
-          signalCtx.fillStyle = outerGrd;
-          signalCtx.beginPath();
-          signalCtx.arc(dot.x, dot.y, glowR, 0, Math.PI * 2);
-          signalCtx.fill();
+          // ── Head: outer glow (desktop only — too costly on mobile) ───────
+          if (!isLiteMode) {
+            const glowR    = cfg.headGlow * 2.0;
+            const outerGrd = signalCtx.createRadialGradient(
+              dot.x, dot.y, 0, dot.x, dot.y, glowR,
+            );
+            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${(opacity * 0.30).toFixed(3)})`);
+            outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            signalCtx.fillStyle = outerGrd;
+            signalCtx.beginPath();
+            signalCtx.arc(dot.x, dot.y, glowR, 0, Math.PI * 2);
+            signalCtx.fill();
+          }
 
-          // ── Head: bright core ─────────────────────────────────────────────
+          // ── Head: bright core (always rendered) ──────────────────────────
           const coreR   = cfg.headSize * 1.4;
           const coreGrd = signalCtx.createRadialGradient(
             dot.x, dot.y, 0, dot.x, dot.y, coreR,
@@ -415,6 +466,8 @@ const navLinks = [
         let signalFrameId            = 0;
         let signalLastFrame          = 0;
         let signalResizeTimer        = 0;
+        let isLiteMode               = false; // set in rebuildSignals
+        let liteFrameInterval        = 0;     // ms; 0 = uncapped (desktop)
 
         const getSeparationFactor = (dot: SignalDot) => {
           let factor = 1;
@@ -429,6 +482,11 @@ const navLinks = [
 
         const animateSignals = (timestamp: number) => {
           if (!signalCtx) return;
+          // Lite mode: cap at 30 fps — skip frame if too soon
+          if (liteFrameInterval > 0 && timestamp - signalLastFrame < liteFrameInterval - 1) {
+            signalFrameId = window.requestAnimationFrame(animateSignals);
+            return;
+          }
           const deltaSeconds = Math.min(
             0.05,
             Math.max(0.001, (timestamp - signalLastFrame) / 1000),
@@ -446,13 +504,23 @@ const navLinks = [
 
         const rebuildSignals = () => {
           if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
+
+          // Detect lite mode before resizing so DPR cap is applied correctly
+          isLiteMode = sceneWidth < 768;
+          liteFrameInterval = isLiteMode ? 1000 / 30 : 0;
+
           window.cancelAnimationFrame(signalFrameId);
           signalDots = [];
-          resizeSignalCanvas();
+          resizeSignalCanvas(); // uses isLiteMode for DPR cap
+
+          // Fewer dots on mobile — each dot is expensive (trail draw + head gradient)
           const dotCount =
             sceneWidth >= 1280 ? 80
             : sceneWidth >= 1024 ? 60
-            : sceneWidth >= 768  ? 45 : 40;
+            : sceneWidth >= 768  ? 40
+            : sceneWidth >= 480  ? 22
+            : 16;
+
           for (let i = 0; i < dotCount; i += 1) {
             signalDots.push(createSignalDot(signalDots));
           }
