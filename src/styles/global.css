@@ -1343,23 +1343,77 @@ a {
 
 .project-filters {
   position: relative;
-  width: min(100%, 24rem);
 }
 
-.project-filter-trigger {
-  display: inline-flex;
-  width: 100%;
-  min-height: 44px;
+/* Filter bar: lane tabs + stack button side by side */
+.project-filter-bar {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border: 1px solid rgba(37, 50, 74, 0.9);
-  border-radius: var(--radius-md);
-  background: rgba(18, 26, 43, 0.88);
-  padding: 0.45rem 0.9rem;
-  font-size: 0.82rem;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Segmented lane tabs container */
+.project-lane-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(37, 50, 74, 0.75);
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.7);
+}
+
+/* Individual lane tab (label) */
+.lane-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-300);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.lane-tab:hover {
+  color: var(--text-100);
+  background: rgba(37, 50, 74, 0.45);
+}
+
+.lane-tab:has(input:checked) {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.22),
+    rgba(139, 92, 246, 0.18)
+  );
+  color: var(--text-100);
   font-weight: 600;
+  box-shadow:
+    0 0 12px rgba(34, 211, 238, 0.18),
+    inset 0 0 0 1px rgba(34, 211, 238, 0.22);
+}
+
+/* Stack filter trigger button */
+.project-stack-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.3rem 0.85rem;
+  border: 1px solid rgba(37, 50, 74, 0.75);
+  border-radius: 999px;
+  background: rgba(18, 26, 43, 0.7);
+  font-size: 0.8rem;
+  font-weight: 500;
   color: var(--text-200);
+  cursor: pointer;
   transition:
     border-color var(--motion-duration-fast) var(--motion-ease-standard),
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
@@ -1367,58 +1421,49 @@ a {
     box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
-.project-filter-trigger:hover {
-  border-color: rgba(34, 211, 238, 0.4);
+.project-stack-trigger:hover {
+  border-color: rgba(34, 211, 238, 0.35);
   color: var(--text-100);
 }
 
-.project-filter-trigger[aria-expanded='true'] {
-  border-color: rgba(34, 211, 238, 0.45);
+.project-stack-trigger[aria-expanded='true'] {
+  border-color: rgba(34, 211, 238, 0.5);
   background: linear-gradient(
     135deg,
-    rgba(34, 211, 238, 0.17),
-    rgba(139, 92, 246, 0.14)
+    rgba(34, 211, 238, 0.16),
+    rgba(139, 92, 246, 0.12)
   );
   color: var(--text-100);
   box-shadow: var(--glow-soft);
 }
 
-.project-filter-trigger-meta {
+.project-stack-trigger[aria-expanded='true'] .project-filter-trigger-chevron {
+  transform: rotate(180deg);
+}
+
+/* Stack count badge */
+.project-stack-count {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-}
-
-.project-filter-trigger-value {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-300);
-  text-align: right;
-}
-
-.project-filter-trigger-chevron {
-  font-size: 0.75rem;
-  color: var(--text-300);
-  transition:
-    transform var(--motion-duration-fast) var(--motion-ease-standard),
-    color var(--motion-duration-fast) var(--motion-ease-standard);
-}
-
-.project-filter-trigger[aria-expanded='true'] .project-filter-trigger-value,
-.project-filter-trigger[aria-expanded='true'] .project-filter-trigger-chevron {
-  color: var(--text-100);
-}
-
-.project-filter-trigger[aria-expanded='true'] .project-filter-trigger-chevron {
-  transform: rotate(180deg);
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--accent-cyan);
+  color: #050816;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .project-filter-menu {
   position: absolute;
   top: calc(100% + var(--space-2));
-  left: 0;
+  right: 0;
+  left: auto;
   z-index: 25;
-  width: 100%;
+  width: min(22rem, calc(100vw - var(--space-8)));
   max-height: min(30rem, calc(100dvh - var(--space-6)));
   overflow-y: auto;
   overscroll-behavior: contain;

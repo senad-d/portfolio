@@ -375,134 +375,108 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
     </p>
 
     <div class="project-filters mt-6" data-project-filters>
-      <button
-        type="button"
-        class="project-filter-trigger focus-ring"
-        data-filter-trigger
-        aria-haspopup="true"
-        aria-expanded="false"
-        aria-controls="projects-filter-menu"
-      >
-        <span>Filter projects</span>
-        <span class="project-filter-trigger-meta">
-          <span class="project-filter-trigger-value" data-filter-summary-label>
-            All lanes · Any stack
-          </span>
-          <span class="project-filter-trigger-chevron" aria-hidden="true">
-            ▾
-          </span>
-        </span>
-      </button>
+      <div class="project-filter-bar">
+        <!-- Lane: always-visible segmented tabs -->
+        <div class="project-lane-tabs" role="group" aria-label="Filter by lane">
+          <label class="lane-tab" for="lane-filter-all">
+            <input
+              id="lane-filter-all"
+              class="sr-only"
+              type="radio"
+              name="lane-filter"
+              value="all"
+              data-lane-option
+              checked
+            />
+            <span>All</span>
+          </label>
+          <label class="lane-tab" for="lane-filter-professional">
+            <input
+              id="lane-filter-professional"
+              class="sr-only"
+              type="radio"
+              name="lane-filter"
+              value="professional"
+              data-lane-option
+            />
+            <span>Professional</span>
+          </label>
+          <label class="lane-tab" for="lane-filter-personal">
+            <input
+              id="lane-filter-personal"
+              class="sr-only"
+              type="radio"
+              name="lane-filter"
+              value="personal"
+              data-lane-option
+            />
+            <span>Personal</span>
+          </label>
+        </div>
+
+        <!-- Stack: separate dropdown trigger -->
+        <button
+          type="button"
+          class="project-stack-trigger focus-ring"
+          data-filter-trigger
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="projects-filter-menu"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+            <line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          <span>Stack</span>
+          <span class="project-stack-count" data-filter-summary-label hidden></span>
+          <span class="project-filter-trigger-chevron" aria-hidden="true">▾</span>
+        </button>
+      </div>
 
       <div
         id="projects-filter-menu"
         class="project-filter-menu"
         data-filter-menu
         role="region"
-        aria-labelledby="projects-filter-menu-title"
-        aria-describedby="projects-filter-menu-hint"
+        aria-label="Filter by stack"
         hidden
       >
-        <p id="projects-filter-menu-title" class="sr-only">Project filters</p>
-        <p id="projects-filter-menu-hint" class="sr-only">
-          Choose lane and stack filters to narrow the project list.
-        </p>
+        <div class="project-filter-stack-header">
+          <p class="project-filter-section-title">Stack</p>
+          <button
+            type="button"
+            class="project-filter-clear focus-ring"
+            data-stack-clear
+          >
+            Clear
+          </button>
+        </div>
+        <p class="project-filter-helper-text">Select one or multiple.</p>
 
-        <section
-          class="project-filter-section"
-          aria-labelledby="lane-filter-title"
-        >
-          <p id="lane-filter-title" class="project-filter-section-title">
-            Lane
-          </p>
-          <ul class="project-filter-options" role="list">
-            <li>
-              <label class="project-filter-option" for="lane-filter-all">
-                <input
-                  id="lane-filter-all"
-                  type="radio"
-                  name="lane-filter"
-                  value="all"
-                  data-lane-option
-                  checked
-                />
-                <span>All</span>
-              </label>
-            </li>
-            <li>
-              <label
-                class="project-filter-option"
-                for="lane-filter-professional"
-              >
-                <input
-                  id="lane-filter-professional"
-                  type="radio"
-                  name="lane-filter"
-                  value="professional"
-                  data-lane-option
-                />
-                <span>Professional</span>
-              </label>
-            </li>
-            <li>
-              <label class="project-filter-option" for="lane-filter-personal">
-                <input
-                  id="lane-filter-personal"
-                  type="radio"
-                  name="lane-filter"
-                  value="personal"
-                  data-lane-option
-                />
-                <span>Personal</span>
-              </label>
-            </li>
-          </ul>
-        </section>
+        <ul class="project-filter-stack-options" role="list">
+          {
+            stackOptions.map((stack) => {
+              const stackValue = toStackFilterValue(stack);
+              const stackOptionId = `stack-filter-${stackValue}`;
 
-        <section
-          class="project-filter-section"
-          aria-labelledby="stack-filter-title"
-        >
-          <div class="project-filter-stack-header">
-            <p id="stack-filter-title" class="project-filter-section-title">
-              Stack
-            </p>
-            <button
-              type="button"
-              class="project-filter-clear focus-ring"
-              data-stack-clear
-            >
-              Clear stacks
-            </button>
-          </div>
-          <p class="project-filter-helper-text">
-            Select one or multiple stack options.
-          </p>
-
-          <ul class="project-filter-stack-options" role="list">
-            {
-              stackOptions.map((stack) => {
-                const stackValue = toStackFilterValue(stack);
-                const stackOptionId = `stack-filter-${stackValue}`;
-
-                return (
-                  <li>
-                    <label class="project-filter-option" for={stackOptionId}>
-                      <input
-                        id={stackOptionId}
-                        type="checkbox"
-                        value={stackValue}
-                        data-stack-option
-                        data-stack-label={stack}
-                      />
-                      <span>{stack}</span>
-                    </label>
-                  </li>
-                );
-              })
-            }
-          </ul>
-        </section>
+              return (
+                <li>
+                  <label class="project-filter-option" for={stackOptionId}>
+                    <input
+                      id={stackOptionId}
+                      type="checkbox"
+                      value={stackValue}
+                      data-stack-option
+                      data-stack-label={stack}
+                    />
+                    <span>{stack}</span>
+                  </label>
+                </li>
+              );
+            })
+          }
+        </ul>
       </div>
     </div>
 
@@ -850,10 +824,6 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
     <h2 id="contact-title" class="text-2xl font-semibold md:text-3xl">
       Contact
     </h2>
-    <p class="mt-3 max-w-3xl text-[color:var(--text-300)]">
-      Open to full-time DevOps roles and freelance AWS engagements. I usually
-      respond within 24 hours.
-    </p>
 
     <div class="mt-6 grid gap-4 md:grid-cols-2">
       <article class="card-surface p-4">
@@ -1207,20 +1177,13 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
           return;
         }
 
-        const laneLabel = laneFilterLabels[activeLaneFilter] ?? 'All lanes';
-
-        let stackLabel = 'Any stack';
-
-        if (selectedStacks.size === 1) {
-          const selectedInput = stackOptionInputs.find(
-            (input) => input.checked,
-          );
-          stackLabel = selectedInput?.dataset.stackLabel ?? '1 stack selected';
-        } else if (selectedStacks.size > 1) {
-          stackLabel = `${selectedStacks.size} stacks selected`;
+        if (selectedStacks.size === 0) {
+          filterSummaryLabel.hidden = true;
+          filterSummaryLabel.textContent = '';
+        } else {
+          filterSummaryLabel.hidden = false;
+          filterSummaryLabel.textContent = String(selectedStacks.size);
         }
-
-        filterSummaryLabel.textContent = `${laneLabel} · ${stackLabel}`;
       };
 
       const applyFilters = () => {
