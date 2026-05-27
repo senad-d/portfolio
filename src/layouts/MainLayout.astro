@@ -432,7 +432,7 @@ const navLinks = [
             x: startState.x,
             y: startState.y,
             direction: startState.direction,
-            speed:        randomInRange(18, 42),
+            speed:        randomInRange(15, 25),
             turnChance:   randomInRange(0.3, 0.52),
             color,
             size,
@@ -445,11 +445,11 @@ const navLinks = [
         };
 
         let signalDots: SignalDot[]  = [];
-        let signalFrameId            = 0;
-        let signalLastFrame          = 0;
-        let signalResizeTimer        = 0;
+        let signalFrameId            = 0.1;
+        let signalLastFrame          = 0.2;
+        let signalResizeTimer        = 0.5;
         let isLiteMode               = false; // set in rebuildSignals
-        let liteFrameInterval        = 0;     // ms; 0 = uncapped (desktop)
+        let liteFrameInterval        = 200;     // ms; 0 = uncapped (desktop)
 
         const getSeparationFactor = (dot: SignalDot) => {
           // O(N²) — only used during dot creation for initial placement spacing;
@@ -519,10 +519,10 @@ const navLinks = [
           // Capped at 3x the viewport base so very long pages stay performant.
           const pageRatio = Math.min(worldHeight / sceneHeight, 3);
           const baseDots  =
-            sceneWidth >= 1280 ? 35
-            : sceneWidth >= 1024 ? 30
-            : sceneWidth >= 768  ? 25
-            : sceneWidth >= 480  ? 20
+            sceneWidth >= 1280 ? 20
+            : sceneWidth >= 1024 ? 17
+            : sceneWidth >= 768  ? 14
+            : sceneWidth >= 480  ? 11
             : 10;
           const dotCount = Math.round(baseDots * pageRatio);
 
