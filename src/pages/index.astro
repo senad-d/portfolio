@@ -415,70 +415,70 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'GitHub Actions', 'Grafana'];
         </div>
 
         <!-- Stack: separate dropdown trigger -->
-        <button
-          type="button"
-          class="project-stack-trigger focus-ring"
-          data-filter-trigger
-          aria-haspopup="true"
-          aria-expanded="false"
-          aria-controls="projects-filter-menu"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-            <line x1="4" y1="6" x2="20" y2="6"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
-            <line x1="11" y1="18" x2="13" y2="18"/>
-          </svg>
-          <span>Stack</span>
-          <span class="project-stack-count" data-filter-summary-label hidden></span>
-          <span class="project-filter-trigger-chevron" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div
-        id="projects-filter-menu"
-        class="project-filter-menu"
-        data-filter-menu
-        role="region"
-        aria-label="Filter by stack"
-        hidden
-      >
-        <div class="project-filter-stack-header">
-          <p class="project-filter-section-title">Stack</p>
+        <div class="project-stack-wrapper">
           <button
             type="button"
-            class="project-filter-clear focus-ring"
-            data-stack-clear
+            class="project-stack-trigger focus-ring"
+            data-filter-trigger
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="projects-filter-menu"
           >
-            Clear
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+              <line x1="11" y1="18" x2="13" y2="18"/>
+            </svg>
+            <span>Stack</span>
+            <span class="project-stack-count" data-filter-summary-label hidden></span>
+            <span class="project-filter-trigger-chevron" aria-hidden="true">▾</span>
           </button>
+
+          <div
+            id="projects-filter-menu"
+            class="project-filter-menu"
+            data-filter-menu
+            role="region"
+            aria-label="Filter by stack"
+            hidden
+          >
+            <div class="project-filter-stack-header">
+              <p class="project-filter-section-title">Stack</p>
+              <button
+                type="button"
+                class="project-filter-clear focus-ring"
+                data-stack-clear
+              >
+                Clear
+              </button>
+            </div>
+            <p class="project-filter-helper-text">Select one or multiple.</p>
+
+            <ul class="project-filter-stack-options" role="list">
+              {
+                stackOptions.map((stack) => {
+                  const stackValue = toStackFilterValue(stack);
+                  const stackOptionId = `stack-filter-${stackValue}`;
+
+                  return (
+                    <li>
+                      <label class="project-filter-option" for={stackOptionId}>
+                        <input
+                          id={stackOptionId}
+                          type="checkbox"
+                          value={stackValue}
+                          data-stack-option
+                          data-stack-label={stack}
+                        />
+                        <span>{stack}</span>
+                      </label>
+                    </li>
+                  );
+                })
+              }
+            </ul>
+          </div>
         </div>
-        <p class="project-filter-helper-text">Select one or multiple.</p>
-
-        <ul class="project-filter-stack-options" role="list">
-          {
-            stackOptions.map((stack) => {
-              const stackValue = toStackFilterValue(stack);
-              const stackOptionId = `stack-filter-${stackValue}`;
-
-              return (
-                <li>
-                  <label class="project-filter-option" for={stackOptionId}>
-                    <input
-                      id={stackOptionId}
-                      type="checkbox"
-                      value={stackValue}
-                      data-stack-option
-                      data-stack-label={stack}
-                    />
-                    <span>{stack}</span>
-                  </label>
-                </li>
-              );
-            })
-          }
-        </ul>
-      </div>
-    </div>
 
     <ul class="project-grid mt-8 grid gap-4" role="list" data-project-list>
       {

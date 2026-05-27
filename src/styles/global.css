@@ -1400,6 +1400,11 @@ a {
     inset 0 0 0 1px rgba(34, 211, 238, 0.22);
 }
 
+/* Stack wrapper: anchor for the dropdown menu */
+.project-stack-wrapper {
+  position: relative;
+}
+
 /* Stack filter trigger button */
 .project-stack-trigger {
   display: inline-flex;
