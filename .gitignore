@@ -30,3 +30,5 @@ tmp/
 .playwright-cli/
 test-results/
 playwright-report/
+
+.local

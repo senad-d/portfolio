@@ -606,6 +606,17 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
                       View code
                     </a>
                   )}
+                  {project.data.links.npm && (
+                    <a
+                      href={project.data.links.npm}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="button-secondary focus-ring"
+                      aria-label="Open npm package"
+                    >
+                      npm package
+                    </a>
+                  )}
                   {project.data.links.live && (
                     <a
                       href={project.data.links.live}

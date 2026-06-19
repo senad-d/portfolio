@@ -25,15 +25,21 @@ const projects = defineCollection({
     links: z
       .object({
         github: z.url().optional(),
+        npm: z.url().optional(),
         live: z.url().optional(),
         caseStudy: z.url().optional(),
       })
       .refine(
         (entryLinks) =>
-          Boolean(entryLinks.github || entryLinks.live || entryLinks.caseStudy),
+          Boolean(
+            entryLinks.github ||
+              entryLinks.npm ||
+              entryLinks.live ||
+              entryLinks.caseStudy,
+          ),
         {
           message:
-            'Provide at least one link in links.github, links.live, or links.caseStudy.',
+            'Provide at least one link in links.github, links.npm, links.live, or links.caseStudy.',
         },
       ),
   }),
