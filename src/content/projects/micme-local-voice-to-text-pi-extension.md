@@ -1,5 +1,5 @@
 ---
-title: Micme Local Voice-to-Text Pi Extension
+title: MicMe Local Voice-to-Text Pi Extension
 summary: Built a local-first voice-to-text extension for Pi that records coding prompts, transcribes locally, and inserts reviewed transcripts into the editor.
 lane: personal
 featured: false
@@ -14,7 +14,7 @@ stack:
   - ffmpeg
   - whisper.cpp
 impact:
-  - Published Micme as a scoped npm package with global, project-local, one-run, Git, and local checkout install paths.
+  - Published MicMe as a scoped npm package with global, project-local, one-run, Git, and local checkout install paths.
   - Preserved privacy by keeping speech-to-text local by default with ffmpeg, whisper.cpp, Python Whisper, or custom backends.
   - Improved coding-agent prompt flow with toggle recording, review-first transcript insertion, device discovery, configuration, and diagnostics.
 links:
@@ -28,8 +28,8 @@ Writing longer coding prompts in a terminal can interrupt flow, while cloud dict
 
 ## Approach
 
-Built Micme as a Pi extension that records microphone input with ffmpeg, transcribes locally through whisper.cpp, Python Whisper, or a custom backend, and pastes the transcript into Pi for review before submission. Added configuration, device discovery, diagnostics, and npm publishing workflows so the package is practical to install and maintain.
+Built MicMe as a Pi extension that records microphone input with ffmpeg, transcribes locally through whisper.cpp, Python Whisper, or a custom backend, and pastes the transcript into Pi for review before submission. Added configuration, device discovery, diagnostics, and npm publishing workflows so the package is practical to install and maintain.
 
 ## Result
 
-Micme provides a local-first voice input workflow for coding prompts, letting users speak, review, and submit transcripts without leaving the Pi editor.
+MicMe provides a local-first voice input workflow for coding prompts, letting users speak, review, and submit transcripts without leaving the Pi editor.
