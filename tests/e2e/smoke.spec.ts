@@ -408,16 +408,22 @@ test('supports keyboard-only filter flow with predictable focus', async ({
 
   await positionFilterTriggerAtViewportBottom(page);
 
+  // Lane tabs form a native radio group: arrow keys move the selection.
+  await page.getByRole('radio', { name: 'All' }).focus();
+  await expect(page.getByRole('radio', { name: 'All' })).toBeFocused();
+
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+
+  // Stack menu: Enter opens it, Tab moves into the menu, Escape closes
+  // it and returns focus to the trigger.
   await filterTrigger.focus();
   await page.keyboard.press('Enter');
 
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
 
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('radio', { name: 'All' })).toBeFocused();
-
-  await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+  await expect(page.locator('[data-stack-clear]')).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');

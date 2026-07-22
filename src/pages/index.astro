@@ -445,7 +445,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
           <label class="lane-tab" for="lane-filter-all">
             <input
               id="lane-filter-all"
-              class="sr-only"
+              class="lane-tab-input"
               type="radio"
               name="lane-filter"
               value="all"
@@ -457,7 +457,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
           <label class="lane-tab" for="lane-filter-professional">
             <input
               id="lane-filter-professional"
-              class="sr-only"
+              class="lane-tab-input"
               type="radio"
               name="lane-filter"
               value="professional"
@@ -468,7 +468,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
           <label class="lane-tab" for="lane-filter-personal">
             <input
               id="lane-filter-personal"
-              class="sr-only"
+              class="lane-tab-input"
               type="radio"
               name="lane-filter"
               value="personal"
@@ -1597,14 +1597,14 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
         const command = line.querySelector('.terminal-cmd');
 
         if (!(command instanceof HTMLElement)) {
-          line.hidden = false;
+          line.style.visibility = '';
           return;
         }
 
         const text = command.textContent ?? '';
 
         command.textContent = '';
-        line.hidden = false;
+        line.style.visibility = '';
         line.classList.add('is-typing');
 
         for (const char of text) {
@@ -1616,8 +1616,10 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
       };
 
       const run = async () => {
+        // visibility (not display) keeps every line's space reserved, so
+        // typing never shifts the layout below the terminal.
         lines.forEach((line) => {
-          line.hidden = true;
+          line.style.visibility = 'hidden';
         });
 
         await wait(500);
@@ -1628,7 +1630,7 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
             await wait(160);
           } else {
             await wait(260);
-            line.hidden = false;
+            line.style.visibility = '';
             await wait(340);
           }
         }

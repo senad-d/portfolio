@@ -1010,6 +1010,7 @@ a {
 
 /* Individual lane tab (label) */
 .lane-tab {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1024,6 +1025,22 @@ a {
     background-color var(--motion-duration-fast) var(--motion-ease-standard),
     color var(--motion-duration-fast) var(--motion-ease-standard),
     box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+/* The radio itself fills the tab as an invisible top layer, so the
+   native control is what receives clicks and taps directly. */
+.lane-tab-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.lane-tab:has(.lane-tab-input:focus-visible) {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 .lane-tab:hover {
