@@ -134,7 +134,7 @@ test('anchor navigation lands with visible heading under sticky header', async (
         }),
       { timeout: 4_000 },
     )
-    .toBeLessThanOrEqual(120);
+    .toBeLessThanOrEqual(150);
 
   const anchorPosition = await page.evaluate(() => {
     const header = document.querySelector('.site-header');
@@ -154,10 +154,13 @@ test('anchor navigation lands with visible heading under sticky header', async (
     };
   });
 
+  // The terminal-style `~/section` path label sits between the header and
+  // each heading, so headings intentionally land slightly lower than in
+  // the pre-redesign layout.
   expect(anchorPosition.headingTop).toBeGreaterThanOrEqual(50);
-  expect(anchorPosition.headingTop).toBeLessThanOrEqual(120);
+  expect(anchorPosition.headingTop).toBeLessThanOrEqual(150);
   expect(anchorPosition.gapFromHeader).toBeGreaterThanOrEqual(0);
-  expect(anchorPosition.gapFromHeader).toBeLessThanOrEqual(56);
+  expect(anchorPosition.gapFromHeader).toBeLessThanOrEqual(84);
 });
 
 test('keeps nav active item and aria-current aligned for anchor clicks', async ({
@@ -405,16 +408,22 @@ test('supports keyboard-only filter flow with predictable focus', async ({
 
   await positionFilterTriggerAtViewportBottom(page);
 
+  // Lane tabs form a native radio group: arrow keys move the selection.
+  await page.getByRole('radio', { name: 'All' }).focus();
+  await expect(page.getByRole('radio', { name: 'All' })).toBeFocused();
+
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+
+  // Stack menu: Enter opens it, Tab moves into the menu, Escape closes
+  // it and returns focus to the trigger.
   await filterTrigger.focus();
   await page.keyboard.press('Enter');
 
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'true');
 
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('radio', { name: 'All' })).toBeFocused();
-
-  await page.keyboard.press('ArrowDown');
-  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+  await expect(page.locator('[data-stack-clear]')).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
