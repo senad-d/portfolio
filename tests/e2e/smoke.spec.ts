@@ -134,7 +134,7 @@ test('anchor navigation lands with visible heading under sticky header', async (
         }),
       { timeout: 4_000 },
     )
-    .toBeLessThanOrEqual(120);
+    .toBeLessThanOrEqual(150);
 
   const anchorPosition = await page.evaluate(() => {
     const header = document.querySelector('.site-header');
@@ -154,10 +154,13 @@ test('anchor navigation lands with visible heading under sticky header', async (
     };
   });
 
+  // The terminal-style `~/section` path label sits between the header and
+  // each heading, so headings intentionally land slightly lower than in
+  // the pre-redesign layout.
   expect(anchorPosition.headingTop).toBeGreaterThanOrEqual(50);
-  expect(anchorPosition.headingTop).toBeLessThanOrEqual(120);
+  expect(anchorPosition.headingTop).toBeLessThanOrEqual(150);
   expect(anchorPosition.gapFromHeader).toBeGreaterThanOrEqual(0);
-  expect(anchorPosition.gapFromHeader).toBeLessThanOrEqual(56);
+  expect(anchorPosition.gapFromHeader).toBeLessThanOrEqual(84);
 });
 
 test('keeps nav active item and aria-current aligned for anchor clicks', async ({

@@ -41,8 +41,15 @@ const navLinks = [
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <meta name="robots" content="index,follow" />
-    <meta name="theme-color" content="#050816" />
+    <meta name="theme-color" content="#030409" />
     <link rel="canonical" href={canonicalUrl} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -62,7 +69,17 @@ const navLinks = [
 
     <header class="site-header" data-site-header>
       <nav class="site-nav" aria-label="Primary navigation">
-        <a href="#home" class="brand-link focus-ring">Senad Dizdarevic</a>
+        <a
+          href="#home"
+          class="brand-link focus-ring"
+          aria-label="Senad Dizdarevic — home"
+        >
+          <span aria-hidden="true">
+            <span class="brand-prompt">❯</span>senad<span class="brand-host"
+              >@dizdarevic</span
+            >:~<span class="brand-cursor">_</span>
+          </span>
+        </a>
 
         <button
           type="button"
@@ -127,113 +144,115 @@ const navLinks = [
             link instanceof HTMLAnchorElement,
         );
 
-        // ── Canvas-based signal animation ─────────────────────────────────────
-        const signalCanvas = document.querySelector('[data-signal-canvas]');
-        const signalCtx =
-          signalCanvas instanceof HTMLCanvasElement
-            ? signalCanvas.getContext('2d')
+        // ── Canvas starfield ──────────────────────────────────────────────
+        // Deep-space background: three parallax star layers with twinkle
+        // plus occasional shooting stars. The canvas stays viewport-sized;
+        // layers translate against scroll at different speeds for depth.
+        const starCanvas = document.querySelector('[data-signal-canvas]');
+        const starCtx =
+          starCanvas instanceof HTMLCanvasElement
+            ? starCanvas.getContext('2d')
             : null;
 
-        const GRID_SIZE = 48;
-        const GRID_OFFSET = 0.5;
-        const EDGE_BUFFER = 28;
-        const MIN_DOT_DISTANCE = GRID_SIZE * 2.0;
+        type StarTint = 'white' | 'cyan' | 'violet' | 'warm';
 
-        type Direction  = 'up' | 'down' | 'left' | 'right';
-        type SignalColor = 'cyan' | 'violet' | 'amber';
-        type SignalSize  = 'sm' | 'md' | 'lg';
-
-        interface SignalDot {
+        interface Star {
           x: number;
           y: number;
-          direction: Direction;
+          r: number;
+          tint: StarTint;
+          baseAlpha: number;
+          phase: number;
           speed: number;
-          turnChance: number;
-          color: SignalColor;
-          size: SignalSize;
-          baseOpacity: number;
-          opacityPhase: number;
-          opacitySpeed: number;
-          opacity: number;
-          trail: Array<{ x: number; y: number }>;
+          glow: boolean;
         }
 
-        const SIGNAL_RGB: Record<SignalColor, readonly [number, number, number]> = {
-          cyan:   [34,  211, 238],
-          violet: [139, 92,  246],
-          amber:  [251, 146, 60 ],
+        interface Meteor {
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          life: number;
+          maxLife: number;
+        }
+
+        const STAR_TINT_RGB: Record<StarTint, readonly [number, number, number]> = {
+          white:  [226, 235, 255],
+          cyan:   [125, 226, 247],
+          violet: [186, 156, 255],
+          warm:   [255, 214, 170],
         };
 
-        // Trail point recorded every TRAIL_STEP px of movement (sparsification).
-        // Reduces stored points ~4× vs one-per-frame, cutting draw calls proportionally.
-        const TRAIL_STEP    = 2;               // px between recorded trail points
-        const TRAIL_STEP_SQ = TRAIL_STEP * TRAIL_STEP;
+        // Pre-rendered sprites (dot + halo per tint). drawImage of a tiny
+        // sprite is far cheaper than per-frame arc rasterization, and halo
+        // sprites avoid per-frame createRadialGradient calls entirely.
+        // Alpha is applied at draw time via globalAlpha.
+        const DOT_SPRITE_HALF = 8;
+        const HALO_SPRITE_HALF = 40;
 
-        // maxPts = visual trail length / TRAIL_STEP
-        const TRAIL_CFG: Record<
-          SignalSize,
-          { maxPts: number; maxPtsLite: number; width: number; headSize: number; headGlow: number }
-        > = {
-          sm: { maxPts:  8, maxPtsLite:  4, width: 1.4, headSize: 3.0, headGlow:  7 },
-          md: { maxPts: 14, maxPtsLite:  7, width: 2.4, headSize: 5.5, headGlow: 12 },
-          lg: { maxPts: 21, maxPtsLite: 10, width: 3.4, headSize: 8.0, headGlow: 17 },
+        const makeSprite = (
+          half: number,
+          draw: (context: CanvasRenderingContext2D, half: number) => void,
+        ) => {
+          const sprite = document.createElement('canvas');
+          sprite.width = half * 2;
+          sprite.height = half * 2;
+          const context = sprite.getContext('2d');
+          if (context) draw(context, half);
+          return sprite;
         };
 
-        // Pre-cached solid colour strings — avoids rgba() string building in the hot path.
-        const SIGNAL_RGB_STR: Record<SignalColor, string> = {
-          cyan:   'rgb(34,211,238)',
-          violet: 'rgb(139,92,246)',
-          amber:  'rgb(251,146,60)',
+        const buildSprites = () => {
+          const dots = {} as Record<StarTint, HTMLCanvasElement>;
+          const halos = {} as Record<StarTint, HTMLCanvasElement>;
+
+          (Object.keys(STAR_TINT_RGB) as StarTint[]).forEach((tint) => {
+            const [r, g, b] = STAR_TINT_RGB[tint];
+
+            dots[tint] = makeSprite(DOT_SPRITE_HALF, (context, half) => {
+              context.fillStyle = `rgb(${r},${g},${b})`;
+              context.beginPath();
+              context.arc(half, half, half, 0, Math.PI * 2);
+              context.fill();
+            });
+
+            halos[tint] = makeSprite(HALO_SPRITE_HALF, (context, half) => {
+              const gradient = context.createRadialGradient(
+                half, half, 0, half, half, half,
+              );
+              gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
+              gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+              context.fillStyle = gradient;
+              context.fillRect(0, 0, half * 2, half * 2);
+            });
+          });
+
+          return { dots, halos };
         };
 
-        // Buckets reduce draw calls from ~N (one per point) to a fixed small number.
-        const TRAIL_BUCKETS_FULL = 6;  // desktop: smooth fade in 6 paths
-        const TRAIL_BUCKETS_LITE = 3;  // mobile:  3 paths, imperceptibly coarser
+        const { dots: dotSprites, halos: haloSprites } = buildSprites();
+
+        // Cull margin must cover the widest halo (r 1.7 × 7 ≈ 12px) so
+        // glowing stars don't pop in and out at the viewport edges.
+        const CULL_MARGIN = 16;
+
+        // Far / mid / near layers. parallax = how fast the layer follows
+        // page scroll (1 would pin it to the content).
+        const STAR_LAYERS = [
+          { parallax: 0.22, share: 0.5, rMin: 0.35, rMax: 0.85 },
+          { parallax: 0.48, share: 0.32, rMin: 0.55, rMax: 1.25 },
+          { parallax: 0.78, share: 0.18, rMin: 0.85, rMax: 1.7 },
+        ] as const;
 
         const randomInRange = (min: number, max: number) =>
           Math.random() * (max - min) + min;
 
-        const randomGridCoordinate = (max: number) => {
-          const lineCount = Math.max(1, Math.floor(max / GRID_SIZE));
-          return Math.round(randomInRange(0, lineCount)) * GRID_SIZE + GRID_OFFSET;
-        };
-
-        const turnLeft = (d: Direction): Direction => {
-          if (d === 'right') return 'up';
-          if (d === 'up')    return 'left';
-          if (d === 'left')  return 'down';
-          return 'right';
-        };
-
-        const turnRight = (d: Direction): Direction => {
-          if (d === 'right') return 'down';
-          if (d === 'down')  return 'left';
-          if (d === 'left')  return 'up';
-          return 'right';
-        };
-
-        const reverseDirection = (d: Direction): Direction => {
-          if (d === 'right') return 'left';
-          if (d === 'left')  return 'right';
-          if (d === 'up')    return 'down';
-          return 'up';
-        };
-
-        const moveDot = (dot: SignalDot, distance: number) => {
-          if (dot.direction === 'right') { dot.x += distance; return; }
-          if (dot.direction === 'left')  { dot.x -= distance; return; }
-          if (dot.direction === 'down')  { dot.y += distance; return; }
-          dot.y -= distance;
-        };
-
-        const distanceToIntersection = (dot: SignalDot) => {
-          const axis = (dot.direction === 'left' || dot.direction === 'right')
-            ? dot.x : dot.y;
-          const mod = ((( axis - GRID_OFFSET) % GRID_SIZE) + GRID_SIZE) % GRID_SIZE;
-          if (dot.direction === 'right' || dot.direction === 'down') {
-            return mod < 0.001 ? GRID_SIZE : GRID_SIZE - mod;
-          }
-          return mod < 0.001 ? GRID_SIZE : mod;
+        const rollTint = (): StarTint => {
+          const roll = Math.random();
+          if (roll < 0.62) return 'white';
+          if (roll < 0.78) return 'cyan';
+          if (roll < 0.92) return 'violet';
+          return 'warm';
         };
 
         let sceneWidth  = window.innerWidth;
@@ -241,306 +260,239 @@ const navLinks = [
         let worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
         let sceneDpr    = window.devicePixelRatio || 1;
 
-        const resizeSignalCanvas = () => {
-          if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
+        let starLayers: Star[][] = [[], [], []];
+        let meteors: Meteor[]    = [];
+        let meteorCountdown      = 4;
+        let starFrameId          = 0;
+        let starLastFrame        = 0;
+        let starResizeTimer      = 0;
+        let isLiteMode           = false;
+        let liteFrameInterval    = 0; // ms; 0 = uncapped (desktop)
+
+        const resizeStarCanvas = () => {
+          if (!(starCanvas instanceof HTMLCanvasElement) || !starCtx) return;
           sceneWidth  = window.innerWidth;
           sceneHeight = window.innerHeight;
           worldHeight = Math.max(sceneHeight, document.documentElement.scrollHeight);
           sceneDpr = Math.min(window.devicePixelRatio || 1, isLiteMode ? 1.5 : 2);
-          signalCanvas.width  = sceneWidth  * sceneDpr;
-          signalCanvas.height = sceneHeight * sceneDpr;
-          signalCanvas.style.width  = `${sceneWidth}px`;
-          signalCanvas.style.height = `${sceneHeight}px`;
-          signalCtx.setTransform(sceneDpr, 0, 0, sceneDpr, 0, 0);
+          starCanvas.width  = sceneWidth  * sceneDpr;
+          starCanvas.height = sceneHeight * sceneDpr;
+          starCanvas.style.width  = `${sceneWidth}px`;
+          starCanvas.style.height = `${sceneHeight}px`;
+          starCtx.setTransform(sceneDpr, 0, 0, sceneDpr, 0, 0);
         };
 
-        const chooseDirection = (dot: SignalDot) => {
-          const forceTurn =
-            (dot.direction === 'left'  && dot.x <= GRID_SIZE + GRID_OFFSET) ||
-            (dot.direction === 'right' && dot.x >= sceneWidth  - GRID_SIZE + GRID_OFFSET) ||
-            (dot.direction === 'up'    && dot.y <= GRID_SIZE + GRID_OFFSET) ||
-            (dot.direction === 'down'  && dot.y >= worldHeight - GRID_SIZE + GRID_OFFSET);
-
-          if (forceTurn || Math.random() < dot.turnChance) {
-            dot.direction = Math.random() < 0.5
-              ? turnLeft(dot.direction)
-              : turnRight(dot.direction);
-            return;
-          }
-          if (Math.random() < 0.02) {
-            dot.direction = reverseDirection(dot.direction);
-          }
-        };
-
-        const wrapDot = (dot: SignalDot) => {
-          const outX = dot.x < -EDGE_BUFFER || dot.x > sceneWidth  + EDGE_BUFFER;
-          const outY = dot.y < -EDGE_BUFFER || dot.y > worldHeight + EDGE_BUFFER;
-          if (outX || outY) {
-            dot.trail.length = 0;
-            if (dot.x < -EDGE_BUFFER)                   dot.x = sceneWidth  + EDGE_BUFFER;
-            else if (dot.x > sceneWidth  + EDGE_BUFFER)  dot.x = -EDGE_BUFFER;
-            if (dot.y < -EDGE_BUFFER)                    dot.y = worldHeight + EDGE_BUFFER;
-            else if (dot.y > worldHeight + EDGE_BUFFER)  dot.y = -EDGE_BUFFER;
-          }
-        };
-
-        const updateDot = (dot: SignalDot, deltaSeconds: number) => {
-          let remaining = dot.speed * deltaSeconds;
-          while (remaining > 0) {
-            const step   = distanceToIntersection(dot);
-            const travel = Math.min(remaining, step);
-            moveDot(dot, travel);
-            remaining -= travel;
-            if (travel + 0.001 >= step) {
-              dot.x = Math.round((dot.x - GRID_OFFSET) / GRID_SIZE) * GRID_SIZE + GRID_OFFSET;
-              dot.y = Math.round((dot.y - GRID_OFFSET) / GRID_SIZE) * GRID_SIZE + GRID_OFFSET;
-              chooseDirection(dot);
-            }
-          }
-          wrapDot(dot);
-        };
-
-        // Record the current position only when the dot has moved >= TRAIL_STEP px
-        // from the last recorded point (sparsification).  Trim by max point count
-        // using shift() — no per-frame array allocation unlike the old slice() approach.
-        const updateTrail = (dot: SignalDot) => {
-          const trail = dot.trail;
-          if (trail.length > 0) {
-            const last = trail[trail.length - 1];
-            const dx = dot.x - last.x;
-            const dy = dot.y - last.y;
-            if (dx * dx + dy * dy < TRAIL_STEP_SQ) return; // not far enough yet
-          }
-          trail.push({ x: dot.x, y: dot.y });
-          const maxPts = isLiteMode
-            ? TRAIL_CFG[dot.size].maxPtsLite
-            : TRAIL_CFG[dot.size].maxPts;
-          if (trail.length > maxPts) trail.shift();
-        };
-
-        const updateOpacity = (dot: SignalDot, deltaSeconds: number) => {
-          dot.opacityPhase += dot.opacitySpeed * deltaSeconds;
-          if (dot.opacityPhase > Math.PI * 2) dot.opacityPhase -= Math.PI * 2;
-          const minOp = dot.baseOpacity * 0.28;
-          dot.opacity =
-            minOp + (dot.baseOpacity - minOp) * (0.5 + 0.5 * Math.sin(dot.opacityPhase));
-        };
-
-        // Unified bucketed trail renderer — draws the trail as a small fixed number
-        // of batched paths (TRAIL_BUCKETS_FULL on desktop, TRAIL_BUCKETS_LITE on mobile)
-        // instead of one stroke() per point.  Uses globalAlpha so strokeStyle is set
-        // once per dot (no per-segment string allocation).
-        const drawTrail = (dot: SignalDot) => {
-          const { trail, opacity, size } = dot;
-          if (trail.length < 2 || !signalCtx) return;
-          const n       = trail.length;
-          const cfg     = TRAIL_CFG[size];
-          const buckets = isLiteMode ? TRAIL_BUCKETS_LITE : TRAIL_BUCKETS_FULL;
-
-          signalCtx.lineCap    = 'round';
-          signalCtx.lineJoin   = 'round';
-          signalCtx.strokeStyle = SIGNAL_RGB_STR[dot.color]; // set once per dot
-
-          for (let bucket = 0; bucket < buckets; bucket++) {
-            const si = Math.floor((bucket       / buckets) * (n - 1));
-            const ei = Math.floor(((bucket + 1) / buckets) * (n - 1));
-            if (ei <= si) continue;
-            const t = (bucket + 1) / buckets;
-            signalCtx.globalAlpha = t * t * opacity * 0.88; // quadratic fade
-            signalCtx.lineWidth   = cfg.width * (0.18 + 0.82 * t);
-            signalCtx.beginPath();
-            signalCtx.moveTo(trail[si].x, trail[si].y);
-            for (let i = si + 1; i <= ei; i++) {
-              signalCtx.lineTo(trail[i].x, trail[i].y);
-            }
-            signalCtx.stroke();
-          }
-          signalCtx.globalAlpha = 1; // reset for head drawing
-        };
-
-        const drawSignal = (dot: SignalDot) => {
-          if (!signalCtx) return;
-          const [r, g, b] = SIGNAL_RGB[dot.color];
-          const cfg = TRAIL_CFG[dot.size];
-          const { opacity } = dot;
-
-          drawTrail(dot); // resets globalAlpha to 1
-
-          // Outer glow (skip on lite mode)
-          if (!isLiteMode) {
-            const glowR    = cfg.headGlow * 2.0;
-            const outerGrd = signalCtx.createRadialGradient(
-              dot.x, dot.y, 0, dot.x, dot.y, glowR,
-            );
-            outerGrd.addColorStop(0, `rgba(${r},${g},${b},${(opacity * 0.30).toFixed(3)})`);
-            outerGrd.addColorStop(1, 'rgba(0,0,0,0)');
-            signalCtx.fillStyle = outerGrd;
-            signalCtx.beginPath();
-            signalCtx.arc(dot.x, dot.y, glowR, 0, Math.PI * 2);
-            signalCtx.fill();
-          }
-
-          // Bright core with radial gradient (white centre → colour → transparent)
-          const coreR   = cfg.headSize * 1.4;
-          const coreGrd = signalCtx.createRadialGradient(
-            dot.x, dot.y, 0, dot.x, dot.y, coreR,
-          );
-          coreGrd.addColorStop(0,    `rgba(255,255,255,${(opacity * 0.96).toFixed(3)})`);
-          coreGrd.addColorStop(0.38, `rgba(${r},${g},${b},${(opacity * 0.85).toFixed(3)})`);
-          coreGrd.addColorStop(1,    'rgba(0,0,0,0)');
-          signalCtx.fillStyle = coreGrd;
-          signalCtx.beginPath();
-          signalCtx.arc(dot.x, dot.y, coreR, 0, Math.PI * 2);
-          signalCtx.fill();
-        };
-
-        const createSignalDot = (existingDots: SignalDot[]): SignalDot => {
-          const createStartState = () => {
-            const horizontalStart = Math.random() < 0.5;
-            const x = horizontalStart
-              ? randomInRange(-EDGE_BUFFER, sceneWidth + EDGE_BUFFER)
-              : randomGridCoordinate(sceneWidth);
-            const y = horizontalStart
-              ? randomGridCoordinate(worldHeight)
-              : randomInRange(-EDGE_BUFFER, worldHeight + EDGE_BUFFER);
-            const direction: Direction = horizontalStart
-              ? (Math.random() < 0.5 ? 'left' : 'right')
-              : (Math.random() < 0.5 ? 'up'   : 'down');
-            return { x, y, direction };
-          };
-
-          let startState = createStartState();
-          for (let attempt = 0; attempt < 90; attempt += 1) {
-            const candidate = createStartState();
-            const tooClose = existingDots.some(
-              (d) => Math.hypot(candidate.x - d.x, candidate.y - d.y) < MIN_DOT_DISTANCE,
-            );
-            if (!tooClose) { startState = candidate; break; }
-          }
-
-          const colorRoll = Math.random();
-          const color: SignalColor =
-            colorRoll < 0.30 ? 'violet' : colorRoll < 0.44 ? 'amber' : 'cyan';
-
-          const sizeRoll = Math.random();
-          const size: SignalSize =
-            sizeRoll < 0.15 ? 'lg' : sizeRoll < 0.30 ? 'sm' : 'md';
-
-          const baseOpacity = randomInRange(0.52, 0.88);
+        const createStar = (layerIndex: number): Star => {
+          const layer = STAR_LAYERS[layerIndex];
+          const maxScroll = Math.max(0, worldHeight - sceneHeight);
+          const ySpan = sceneHeight + maxScroll * layer.parallax;
 
           return {
-            x: startState.x,
-            y: startState.y,
-            direction: startState.direction,
-            speed:        randomInRange(15, 25),
-            turnChance:   randomInRange(0.3, 0.52),
-            color,
-            size,
-            baseOpacity,
-            opacityPhase: randomInRange(0, Math.PI * 2),
-            opacitySpeed: randomInRange(0.3, 0.8),
-            opacity:      baseOpacity,
-            trail:        [],
+            x: randomInRange(0, sceneWidth),
+            y: randomInRange(0, ySpan),
+            r: randomInRange(layer.rMin, layer.rMax),
+            tint: rollTint(),
+            baseAlpha: randomInRange(0.3, 0.9),
+            phase: randomInRange(0, Math.PI * 2),
+            speed: randomInRange(0.35, 1.6),
+            glow: layerIndex === 2 && Math.random() < 0.08,
           };
         };
 
-        let signalDots: SignalDot[]  = [];
-        let signalFrameId            = 0.1;
-        let signalLastFrame          = 0.2;
-        let signalResizeTimer        = 0.5;
-        let isLiteMode               = false; // set in rebuildSignals
-        let liteFrameInterval        = 200;     // ms; 0 = uncapped (desktop)
+        const spawnMeteor = (): Meteor => {
+          const fromLeft = Math.random() < 0.5;
+          const speed = randomInRange(520, 860);
+          const angle = randomInRange(Math.PI / 10, Math.PI / 5);
 
-        const getSeparationFactor = (dot: SignalDot) => {
-          // O(N²) — only used during dot creation for initial placement spacing;
-          // removed from the per-frame animation loop.
-          let factor = 1;
-          const t1sq = (GRID_SIZE * 0.95) * (GRID_SIZE * 0.95);
-          const t2sq = (GRID_SIZE * 1.50) * (GRID_SIZE * 1.50);
-          for (const other of signalDots) {
-            if (other === dot) continue;
-            const dx = dot.x - other.x;
-            const dy = dot.y - other.y;
-            const dSq = dx * dx + dy * dy;
-            if (dSq < t1sq) { factor = Math.min(factor, 0.3); break; }
-            else if (dSq < t2sq) factor = Math.min(factor, 0.68);
-          }
-          return factor;
+          return {
+            x: randomInRange(sceneWidth * 0.05, sceneWidth * 0.95),
+            y: randomInRange(-40, sceneHeight * 0.35),
+            vx: Math.cos(angle) * speed * (fromLeft ? 1 : -1),
+            vy: Math.sin(angle) * speed,
+            life: 0,
+            maxLife: randomInRange(0.7, 1.2),
+          };
         };
-        void getSeparationFactor; // kept for potential future use
 
-        const animateSignals = (timestamp: number) => {
-          if (!signalCtx) return;
+        const drawStars = (
+          deltaSeconds: number,
+          scrollY: number,
+          animate: boolean,
+        ) => {
+          if (!starCtx) return;
+
+          for (let layerIndex = 0; layerIndex < STAR_LAYERS.length; layerIndex += 1) {
+            const offset = scrollY * STAR_LAYERS[layerIndex].parallax;
+
+            for (const star of starLayers[layerIndex]) {
+              const screenY = star.y - offset;
+              if (
+                screenY < -CULL_MARGIN ||
+                screenY > sceneHeight + CULL_MARGIN
+              ) {
+                continue;
+              }
+
+              if (animate) {
+                star.phase += star.speed * deltaSeconds;
+                if (star.phase > Math.PI * 2) star.phase -= Math.PI * 2;
+              }
+
+              const twinkle = animate
+                ? 0.38 + 0.62 * (0.5 + 0.5 * Math.sin(star.phase))
+                : 0.75;
+              const alpha = star.baseAlpha * twinkle;
+
+              // Soft halo on a few bright near-layer stars (desktop only).
+              if (star.glow && !isLiteMode) {
+                const haloR = star.r * 7;
+                starCtx.globalAlpha = alpha * 0.45;
+                starCtx.drawImage(
+                  haloSprites[star.tint],
+                  star.x - haloR,
+                  screenY - haloR,
+                  haloR * 2,
+                  haloR * 2,
+                );
+              }
+
+              starCtx.globalAlpha = alpha;
+              starCtx.drawImage(
+                dotSprites[star.tint],
+                star.x - star.r,
+                screenY - star.r,
+                star.r * 2,
+                star.r * 2,
+              );
+            }
+          }
+
+          starCtx.globalAlpha = 1;
+        };
+
+        const updateMeteors = (deltaSeconds: number) => {
+          if (isLiteMode) return;
+
+          meteorCountdown -= deltaSeconds;
+          if (meteorCountdown <= 0 && meteors.length < 2) {
+            meteors.push(spawnMeteor());
+            meteorCountdown = randomInRange(5, 11);
+          }
+
+          for (const meteor of meteors) {
+            meteor.life += deltaSeconds;
+            meteor.x += meteor.vx * deltaSeconds;
+            meteor.y += meteor.vy * deltaSeconds;
+          }
+
+          meteors = meteors.filter(
+            (meteor) =>
+              meteor.life < meteor.maxLife &&
+              meteor.y < sceneHeight + 90 &&
+              meteor.x > -160 &&
+              meteor.x < sceneWidth + 160,
+          );
+        };
+
+        const drawMeteors = () => {
+          if (!starCtx) return;
+
+          for (const meteor of meteors) {
+            const progress = meteor.life / meteor.maxLife;
+            const alpha = Math.sin(Math.PI * progress) * 0.85;
+            const magnitude = Math.hypot(meteor.vx, meteor.vy) || 1;
+            const tailX = meteor.x - (meteor.vx / magnitude) * 120;
+            const tailY = meteor.y - (meteor.vy / magnitude) * 120;
+
+            const trail = starCtx.createLinearGradient(
+              meteor.x, meteor.y, tailX, tailY,
+            );
+            trail.addColorStop(0, `rgba(214,240,255,${alpha.toFixed(3)})`);
+            trail.addColorStop(1, 'rgba(214,240,255,0)');
+
+            starCtx.strokeStyle = trail;
+            starCtx.lineWidth = 1.6;
+            starCtx.lineCap = 'round';
+            starCtx.beginPath();
+            starCtx.moveTo(meteor.x, meteor.y);
+            starCtx.lineTo(tailX, tailY);
+            starCtx.stroke();
+
+            starCtx.globalAlpha = alpha;
+            starCtx.fillStyle = '#eaf6ff';
+            starCtx.beginPath();
+            starCtx.arc(meteor.x, meteor.y, 1.7, 0, Math.PI * 2);
+            starCtx.fill();
+            starCtx.globalAlpha = 1;
+          }
+        };
+
+        const animateStarfield = (timestamp: number) => {
+          if (!starCtx) return;
+
           // Lite mode: cap at 30 fps — skip frame if too soon
-          if (liteFrameInterval > 0 && timestamp - signalLastFrame < liteFrameInterval - 1) {
-            signalFrameId = window.requestAnimationFrame(animateSignals);
+          if (liteFrameInterval > 0 && timestamp - starLastFrame < liteFrameInterval - 1) {
+            starFrameId = window.requestAnimationFrame(animateStarfield);
             return;
           }
+
           const deltaSeconds = Math.min(
             0.05,
-            Math.max(0.001, (timestamp - signalLastFrame) / 1000),
+            Math.max(0.001, (timestamp - starLastFrame) / 1000),
           );
-          signalLastFrame = timestamp;
+          starLastFrame = timestamp;
 
-          const scrollY = window.scrollY;
-          signalCtx.clearRect(0, 0, sceneWidth, sceneHeight);
-          signalCtx.save();
-          signalCtx.translate(0, -scrollY); // world → screen coords
+          starCtx.clearRect(0, 0, sceneWidth, sceneHeight);
+          drawStars(deltaSeconds, window.scrollY, true);
+          updateMeteors(deltaSeconds);
+          drawMeteors();
 
-          for (const dot of signalDots) {
-            updateDot(dot, deltaSeconds);
-            updateOpacity(dot, deltaSeconds);
-            updateTrail(dot);
-            if (dot.y < scrollY - 60 || dot.y > scrollY + sceneHeight + 60) continue;
-            drawSignal(dot);
-          }
-
-          signalCtx.restore();
-          signalFrameId = window.requestAnimationFrame(animateSignals);
+          starFrameId = window.requestAnimationFrame(animateStarfield);
         };
 
-        const rebuildSignals = () => {
-          if (!(signalCanvas instanceof HTMLCanvasElement) || !signalCtx) return;
+        const rebuildStarfield = () => {
+          if (!(starCanvas instanceof HTMLCanvasElement) || !starCtx) return;
 
-          // Respect reduced-motion preference — skip animation entirely
-          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-          // Rebuild world size before computing dot count
           sceneWidth  = window.innerWidth;
           worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
           isLiteMode  = sceneWidth < 768;
           liteFrameInterval = isLiteMode ? 1000 / 30 : 0;
 
-          window.cancelAnimationFrame(signalFrameId);
-          signalDots = [];
-          resizeSignalCanvas();
+          window.cancelAnimationFrame(starFrameId);
+          resizeStarCanvas();
 
-          // Scale dot count with page height so density stays consistent while scrolling.
-          // Capped at 3x the viewport base so very long pages stay performant.
-          const pageRatio = Math.min(worldHeight / sceneHeight, 3);
-          const baseDots  =
-            sceneWidth >= 1280 ? 20
-            : sceneWidth >= 1024 ? 17
-            : sceneWidth >= 768  ? 14
-            : sceneWidth >= 480  ? 11
-            : 10;
-          const dotCount = Math.round(baseDots * pageRatio);
+          // Density: px² of viewport per star; star counts scale with each
+          // layer's scrollable span so on-screen density stays consistent.
+          const density = isLiteMode ? 15000 : 9000;
+          const baseCount = (sceneWidth * sceneHeight) / density;
+          const maxScroll = Math.max(0, worldHeight - sceneHeight);
 
-          for (let i = 0; i < dotCount; i += 1) {
-            signalDots.push(createSignalDot(signalDots));
+          starLayers = STAR_LAYERS.map((layer, layerIndex) => {
+            const ySpan = sceneHeight + maxScroll * layer.parallax;
+            const count = Math.round((baseCount * layer.share * ySpan) / sceneHeight);
+            return Array.from({ length: count }, () => createStar(layerIndex));
+          });
+          meteors = [];
+
+          // Reduced motion: render a single static frame instead of animating.
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            starCtx.clearRect(0, 0, sceneWidth, sceneHeight);
+            drawStars(0, window.scrollY, false);
+            return;
           }
-          signalLastFrame = performance.now();
-          signalFrameId   = window.requestAnimationFrame(animateSignals);
+
+          starLastFrame = performance.now();
+          starFrameId   = window.requestAnimationFrame(animateStarfield);
         };
 
-        rebuildSignals();
+        rebuildStarfield();
         // Rebuild once more after full page load so worldHeight reflects
         // final layout (fonts, images may shift it from the initial value).
-        window.addEventListener('load', rebuildSignals, { once: true });
+        window.addEventListener('load', rebuildStarfield, { once: true });
 
         window.addEventListener('resize', () => {
-          window.clearTimeout(signalResizeTimer);
-          signalResizeTimer = window.setTimeout(rebuildSignals, 200);
+          window.clearTimeout(starResizeTimer);
+          starResizeTimer = window.setTimeout(rebuildStarfield, 200);
         });
 
         if (navLinks.length === 0) {
@@ -758,6 +710,70 @@ const navLinks = [
 
         window.addEventListener('scroll', syncOnScroll, {
           passive: true,
+        });
+      })();
+    </script>
+
+    <script>
+      // Scroll reveal: cascading boot-up for cards and headings.
+      (() => {
+        const prefersReducedMotion = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        ).matches;
+
+        if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+          return;
+        }
+
+        const targets = Array.from(
+          document.querySelectorAll(
+            [
+              '.section-block > h2',
+              '.section-path',
+              '.card-surface',
+              '.experience-entry',
+              '.skills-ledger-row',
+              '.certification-item',
+              '.contact-link-card',
+              '.terminal-window',
+              '.tools-rail',
+            ].join(', '),
+          ),
+        ).filter(
+          (element): element is HTMLElement => element instanceof HTMLElement,
+        );
+
+        if (targets.length === 0) {
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) {
+                continue;
+              }
+
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          },
+          { threshold: 0.08, rootMargin: '0px 0px -36px' },
+        );
+
+        targets.forEach((element) => {
+          // Stagger siblings slightly for a cascading feel.
+          const siblings = element.parentElement
+            ? Array.from(element.parentElement.children)
+            : [];
+          const index = Math.max(0, siblings.indexOf(element));
+
+          element.style.setProperty(
+            '--reveal-delay',
+            `${Math.min(index % 8, 5) * 55}ms`,
+          );
+          element.classList.add('reveal');
+          observer.observe(element);
         });
       })();
     </script>
