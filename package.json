@@ -21,7 +21,7 @@
     "new:project": "bash ./scripts/new-project.sh"
   },
   "dependencies": {
-    "astro": "^6.3.6"
+    "astro": "^7.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
