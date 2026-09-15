@@ -26,7 +26,7 @@ test('loads homepage and primary sections', async ({ page }) => {
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: /Building reliable cloud platforms with practical automation/i,
+      name: /Reliable systems that help your business move forward/i,
     }),
   ).toBeVisible();
 
@@ -59,6 +59,11 @@ for (const viewport of [
 
     await expect(page.locator('.site-header')).toBeVisible();
     await expect(page.locator('[data-filter-trigger]')).toHaveCount(1);
+    if (viewport.width >= 1024) {
+      for (const link of await page.locator('[data-nav-link]').all()) {
+        await expect(link).toBeInViewport({ ratio: 1 });
+      }
+    }
   });
 }
 
@@ -154,9 +159,7 @@ test('anchor navigation lands with visible heading under sticky header', async (
     };
   });
 
-  // The terminal-style `~/section` path label sits between the header and
-  // each heading, so headings intentionally land slightly lower than in
-  // the pre-redesign layout.
+  // Section headings remain below the fixed header after anchor navigation.
   expect(anchorPosition.headingTop).toBeGreaterThanOrEqual(50);
   expect(anchorPosition.headingTop).toBeLessThanOrEqual(150);
   expect(anchorPosition.gapFromHeader).toBeGreaterThanOrEqual(0);
@@ -249,16 +252,25 @@ test('keeps active nav state after refresh on deep hash', async ({ page }) => {
   ).toHaveCount(1);
 });
 
-test('projects filter updates visible cards by lane', async ({ page }) => {
+test('projects filter defaults to professional and updates visible cards by lane', async ({
+  page,
+}) => {
   await page.goto(homePath);
 
-  const cards = page.locator('[data-project-item]');
-  await expect(cards.first()).toBeVisible();
+  const visibleCards = page.locator('[data-project-item]:not([hidden])');
 
-  await page.locator('[data-filter-trigger]').click();
+  await expect(page.getByRole('radio', { name: 'Professional' })).toBeChecked();
+  await expect(visibleCards.first()).toBeVisible();
+  expect(
+    await visibleCards.evaluateAll((items) =>
+      items.every(
+        (item) => item.getAttribute('data-project-lane') === 'professional',
+      ),
+    ),
+  ).toBe(true);
+
   await page.getByRole('radio', { name: 'Personal' }).check();
 
-  const visibleCards = page.locator('[data-project-item]:not([hidden])');
   const visibleCount = await visibleCards.count();
 
   expect(visibleCount).toBeGreaterThan(0);
@@ -441,6 +453,8 @@ test('projects filter menu exposes semantic context tied to the trigger', async 
   );
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
   await expect(filterMenu).toHaveAttribute('role', 'region');
+  // A disclosure region is not an ARIA menu/dialog popup.
+  await expect(filterTrigger).not.toHaveAttribute('aria-haspopup');
   await expect(filterMenu).toHaveAttribute(
     'aria-labelledby',
     'projects-filter-menu-title',
@@ -623,6 +637,29 @@ test('respects reduced-motion preference for smooth scrolling behavior', async (
   );
 
   expect(scrollBehavior).toBe('auto');
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document
+            .getAnimations()
+            .filter((animation) => animation.playState === 'running').length,
+      ),
+    )
+    .toBe(0);
+  await expect(page.locator('[data-hero-terminal]')).toContainText(
+    './deploy.sh --env production',
+  );
+
+  const card = page.locator('[data-project-item]').first();
+  await card.scrollIntoViewIfNeeded();
+  const bounds = await card.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move(
+    Math.round(bounds!.x + bounds!.width / 2),
+    Math.round(bounds!.y + bounds!.height / 2),
+  );
+  await expect(card).not.toHaveAttribute('data-pointer-active', '');
 });
 
 test('core interaction flow emits no browser console warnings or errors', async ({

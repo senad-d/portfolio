@@ -39,20 +39,20 @@ When scaffolded, keep this layout:
 
 These commands should be available and stable:
 
-| Command                      | Purpose                                    | When to use                        |
-| ---------------------------- | ------------------------------------------ | ---------------------------------- |
-| `npm ci`                     | Install exact deps in CI/local clean setup | Before validation, CI runs         |
+| Command                      | Purpose                                              | When to use                        |
+| ---------------------------- | ---------------------------------------------------- | ---------------------------------- |
+| `npm ci`                     | Install exact deps in CI/local clean setup           | Before validation, CI runs         |
 | `npm run dev`                | Start Astro local dev server (single-instance guard) | During feature/content development |
-| `npm run build`              | Create production static build             | Before PR and deploy               |
-| `npm run preview`            | Preview production build locally           | Final local QA                     |
-| `npm run lint`               | Lint code/style issues                     | Before commit/PR                   |
-| `npm run typecheck`          | TypeScript + Astro checks                  | Before commit/PR                   |
-| `npm run format`             | Auto-format files                          | Before commit                      |
-| `npm run validate`           | Full gate: lint + typecheck + build        | Required before merge              |
-| `npm run qa`                 | Automation wrapper for format + validate   | Fast local pre-PR check            |
-| `npm run test:e2e`           | Playwright smoke tests                     | PR and release checks              |
-| `npm run lighthouse`         | Lighthouse automation + threshold checks   | Quality hardening and release prep |
-| `npm run new:project <slug>` | Generate project markdown from template    | Adding new portfolio item          |
+| `npm run build`              | Create production static build                       | Before PR and deploy               |
+| `npm run preview`            | Preview production build locally                     | Final local QA                     |
+| `npm run lint`               | Lint code/style issues                               | Before commit/PR                   |
+| `npm run typecheck`          | TypeScript + Astro checks                            | Before commit/PR                   |
+| `npm run format`             | Auto-format files                                    | Before commit                      |
+| `npm run validate`           | Full gate: lint + typecheck + build                  | Required before merge              |
+| `npm run qa`                 | Automation wrapper for format + validate             | Fast local pre-PR check            |
+| `npm run test:e2e`           | Playwright smoke tests                               | PR and release checks              |
+| `npm run lighthouse`         | Lighthouse automation + threshold checks             | Quality hardening and release prep |
+| `npm run new:project <slug>` | Generate project markdown from template              | Adding new portfolio item          |
 
 ### Minimum validate script
 
@@ -152,6 +152,8 @@ Use Markdown-driven content for all project entries.
 - Animations are subtle and respect reduced motion
 
 ## C) E2E smoke tests (Playwright)
+
+Page-background changes: run `npm run test:e2e -- tests/e2e/header-dot-effect.spec.ts --output=/tmp/portfolio-background-e2e`. The immutable source baseline is `senad-d/portfolio@71cf24c`, verified against the live CSS/JS assets documented in README.md. Preserve its copied starfield block verbatim, original gradient backdrop, masked 56px grid, scroll parallax, and desktop meteors. The live baseline has no pointer-clearing effect; do not reintroduce the reconstructed 3rem/14rem backgrounds or a separate pointer field.
 
 Include smoke tests for:
 

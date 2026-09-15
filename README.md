@@ -41,6 +41,12 @@ npm run validate
 | `npm run lighthouse`         | Run Lighthouse audit with threshold checks          |
 | `npm run new:project <slug>` | Generate a new project markdown file from template  |
 
+### UI regression checks
+
+Run `npm run validate` and `npm run test:e2e`. For terminal UI changes, a focused run is `npm run test:e2e -- tests/e2e/terminal-refinements.spec.ts`. Use `--output=/tmp/portfolio-e2e` to keep browser artifacts outside the repository. Tests cover tablet navigation, chronological project browsing, filters, contact order, and no-JS project access; inspect the fresh production preview at mobile, tablet, and desktop widths as well.
+
+The background is restored directly from immutable [`senad-d/portfolio@71cf24c`](https://github.com/senad-d/portfolio/tree/71cf24c), confirmed against the downloaded live site's `index.DEYIQxzd.css` and `MainLayout.astro_astro_type_script_index_0_lang.Fz3Eq8Yz.js`. It uses a masked 56px grid, the original gradient backdrop (`#030409` → `#070b16` → `#04060f`), and three sparse star layers with twinkle, scroll parallax, and occasional desktop meteors. There is no pointer-clearing effect. Mobile uses the original lite mode; reduced motion starts with static stars; no JavaScript retains the CSS backdrop. Preserve the copied starfield block verbatim rather than reconstructing it or deriving appearance from old tests. Run `npm run test:e2e -- tests/e2e/header-dot-effect.spec.ts --output=/tmp/portfolio-background-e2e` for the source fingerprint and browser regressions.
+
 ## Automation scripts
 
 - `scripts/dev.sh`: start dev server with a single-instance guard (`npm run dev`)
@@ -59,6 +65,8 @@ npm run validate
 2. Update frontmatter in `src/content/projects/<slug>.md`:
    - set `lane` (`professional` or `personal`)
    - set `status`, `featured`, `impact`
+   - projects appear newest first in the complete chronological collection
+   - lane and stack filters narrow that collection; impact and external links remain in each project’s Details panel
 3. Write content sections in order: `Problem`, `Approach`, `Result`
 4. Run checks:
 

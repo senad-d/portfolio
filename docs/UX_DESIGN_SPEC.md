@@ -1,8 +1,8 @@
 # UX Design Specification — As-Built (Code-First)
 
 **Document status:** Implementation-aligned (code is source of truth)  
-**Version:** 1.1  
-**Last updated:** 2026-05-24  
+**Version:** 1.2  
+**Last updated:** 2026-09-15  
 **Product:** Personal portfolio website (single-page, Astro + TypeScript + Tailwind)
 
 ---
@@ -69,7 +69,7 @@ Sticky header primary links (same order as sections):
   - `>=1280px`: `6rem`
 - Sticky header remains fixed with translucent blurred background and scrolled state.
 - Smooth anchor scrolling enabled by default (`scroll-behavior: smooth`) with `scroll-padding-top` tied to header height.
-- Mobile nav uses hamburger menu (`data-nav-toggle`) below `768px`; desktop uses inline nav.
+- Mobile/tablet nav uses hamburger menu (`data-nav-toggle`) below `1024px`; desktop uses inline nav. The brand never wraps; the expanded menu scrolls in short viewports.
 
 ### Mobile hardening in CSS
 
@@ -93,19 +93,24 @@ Sticky header primary links (same order as sections):
 
 ### 5.2 Hero (`#home`)
 
-- Kicker: `DevOps & Cloud Engineer`.
-- H1: `Building reliable cloud platforms with practical automation`.
+- Kicker: `Helping teams build with confidence`.
+- H1: `Reliable systems that help your business move forward`.
 - CTA buttons:
   - Primary: `View projects` (`#projects`)
   - Secondary: `Contact` (`#contact`)
-- Includes three credibility cards (hiring teams / freelance clients / shared outcome).
+- Compact lead explains the client benefits of dependable systems and less repetitive operational work.
+- A static terminal labeled `Portfolio snapshot` shows the requested `senad@cloud: ~/portfolio` session: `whoami`, `terraform apply -auto-approve`, and `./deploy.sh --env production`, followed by a continuously blinking final cursor.
+- Three compact audience/outcome cards follow the hero: Hiring teams, Freelance clients, and Shared outcome.
 
 ### 5.3 Projects (`#projects`)
 
 #### Data and ordering
 
 - Loaded from markdown collection `projects`.
-- Sorted descending by normalized `startDate`.
+- The complete collection is shown by default, sorted descending by normalized `startDate`.
+- Cards use a single chronological column at every viewport so the collection reads as one timeline rather than a featured-project dashboard.
+- Filtering narrows that visible collection directly; there is no separate selected/show-all mode.
+- Without JavaScript, all projects and native details remain available.
 - Date parser supports:
   - `YYYY-MM`
   - `Mon YYYY`
@@ -121,7 +126,7 @@ Each card includes:
 - stack chips,
 - expandable details panel,
 - impact bullets,
-- external actions (`View code`, `Live project`, `Case study`) where present.
+- external actions (`View code`, `npm package`, `Live project`, `Case study`) inside details where present.
 
 #### Narrative extraction (details panel)
 
@@ -135,13 +140,17 @@ If headings are missing, code applies fallback text derived from summary/impact.
 
 #### Filtering (implemented UX)
 
-- Trigger button opens a popover menu.
+- Always-visible lane radio controls and Stack trigger have at least 44px targets.
+- Stack trigger opens a popover menu; its badge is hidden unless a selection exists.
 - Lane filter uses radio options:
   - All
   - Professional
   - Personal
 - Stack filter uses multi-select checkboxes (dynamic from all stack values).
-- “Clear stacks” button resets selected stacks.
+- “Clear” button resets selected stacks.
+- Lane/stack filters search the full collection. Stack choices are OR-matched, combined with the lane using AND.
+- Clearing filters restores the complete chronological collection.
+- Visible polite status announces the current result count and filter scope.
 - Empty-state message shown when no cards match.
 - Screen-reader live status (`aria-live="polite"`) announces result counts.
 
@@ -150,6 +159,7 @@ If headings are missing, code applies fallback text derived from summary/impact.
 - Multiple project details can remain open simultaneously.
 - Expand/collapse animations are custom Web Animations API transitions.
 - Hidden cards are auto-collapsed when filters change.
+- On fine-pointer devices, each card starts with a small, dim radial glow that follows the mouse. Hover immediately expands it from 10rem to its full 26rem radius while brightening (opacity 0.1 → 0.9) over 250ms with ease-in-out; pointer exit reverses the transition without a delay. Touch and reduced-motion modes do not initialize pointer tracking.
 
 ### 5.4 About (`#about`)
 
@@ -180,11 +190,12 @@ If headings are missing, code applies fallback text derived from summary/impact.
 
 ### 5.8 Contact (`#contact`)
 
+- Contact links immediately follow the heading, with Email and Upwork first in DOM and visual order (side by side from 640px).
 - Response-time expectation text (usually within 24h).
-- Audience guidance cards:
+- Secondary audience guidance follows the links:
   - Hiring teams
   - Freelance clients
-- A hook card clarifies first-contact value (quick review + practical next steps).
+- Freelance guidance summarizes first-contact value (quick review + practical next steps).
 - Actions:
   - Email (`mailto:`)
   - Upwork (external)
@@ -193,6 +204,10 @@ If headings are missing, code applies fallback text derived from summary/impact.
   - YouTube (external)
 - Email and Upwork are visually emphasized as top-priority contact CTAs.
 - External links use `target="_blank"` + `rel="noopener noreferrer"`.
+
+### 5.9 Footer
+
+- A compact terminal window mirrors the hero terminal chrome, includes the copyright year and owner, and ends the portfolio session with `exit 0`. Contact/media links remain in the Contact section rather than being duplicated.
 
 ---
 
@@ -206,12 +221,12 @@ Dark-first token system in `global.css`:
 - Accents: `--accent-cyan`, `--accent-violet`
 - Status: `--success`, `--warning`
 
-Styling direction: futuristic/technical dark UI with subtle cyan-violet glow effects.
+Styling direction: near-black terminal UI. Page backdrop uses the live baseline's layered gradients (`#030409` → `#070B16` → `#04060F`), panels `#111820`, text `#E6EDF3`, muted text `#9DA9B8`, prompt/primary green `#7EE787`, secondary links `#79C0FF`, warning `#E3B341`. Violet is reserved for explicit Personal labels. Controls/panels use 4–6px corners, solid primary surfaces, and restrained hover accents. Section headings use a single `❯` prefix, without duplicate path labels.
 
 Typography implementation:
 
-- Primary UI text and headings: Inter/system sans stack
-- Technical identifiers: JetBrains Mono fallback stack
+- Paragraphs: Inter/system sans stack
+- Headings, controls, terminal chrome, and technical identifiers: JetBrains Mono fallback stack
 
 ---
 
@@ -219,7 +234,11 @@ Typography implementation:
 
 - Standard transition timing is constrained around `150–250ms`.
 - Header/menu/filter/card/detail interactions use short motion tokens.
-- Animated ambient background (“signal network”) is rendered as moving dots behind content.
+- Background authority: immutable `senad-d/portfolio@71cf24c`, confirmed against live assets `index.DEYIQxzd.css` and `MainLayout.astro_astro_type_script_index_0_lang.Fz3Eq8Yz.js`. Restore source rather than reconstruct from descriptions; this supersedes the prior 3rem and 14rem interpretations.
+- Preserve the original layered gradient backdrop, masked 56px × 56px grid, and three sparse white/cyan/violet/warm star layers with twinkle, scroll parallax, rare near-star halos, and occasional desktop meteors. Pointer movement does not manipulate the live baseline's stars.
+- The viewport-sized decorative canvas is non-interactive and hidden from assistive technology. Mobile retains the original lower-density, 30fps lite mode without halos/meteors. Reduced motion at load renders static stars; no JavaScript retains the CSS backdrop with an empty canvas.
+- Terminal content is static; the final terminal cursor blinks continuously, while reduced-motion mode neutralizes the animation.
+- Scroll reveals use 200ms transitions with a small sibling stagger.
 
 ### Reduced motion behavior
 
@@ -257,9 +276,20 @@ This keeps portfolio project quality and card rendering consistency stable.
 
 ---
 
-## 10) Quality verification snapshot (current)
+## 10) Quality verification snapshot
 
-Last local verification on 2026-05-24:
+Terminal refinement regression coverage lives in `tests/e2e/terminal-refinements.spec.ts`; existing smoke coverage remains in `tests/e2e/smoke.spec.ts`. Run `npm run test:e2e` (or pass a spec path for a focused run). The regression suite covers tablet navigation, chronological project browsing, full-collection filters, empty states, touch targets, badge hiding, contact order, truthful hero content, and no-JS project access.
+
+Background regression coverage lives in `tests/e2e/header-dot-effect.spec.ts`: immutable source fingerprint, live gradient/grid values, sparse viewport-sized canvas, twinkle/scroll rendering, keyboard access, reduced motion at load, and no-JavaScript fallback. These tests guard the source-backed restoration; they do not replace visual comparison with the live assets.
+
+Objective 7 verification (fresh production build):
+
+- `npm run validate`: passed; 0 Astro errors/warnings/hints.
+- `npm run test:e2e -- --workers=2 --output=/tmp/portfolio-obj7-test-results`: 66 passed across desktop/mobile Chromium. Seven new regression cases failed before implementation; the no-JS baseline already passed.
+- Inspected screenshots at 320, 390, 768, and 1440px, including tablet menu, projects, contact, Stack, and keyboard focus. Reduced-motion emulation settled to 0 running animations with automatic scrolling; console was clear.
+- Axe: 0 violations, 42 passes, 1 incomplete contrast rule covering decorative prompt/chevron symbols. Not a full manual accessibility or cross-browser audit; no new performance measurements.
+
+Historical baseline verification on 2026-05-24 (not new performance measurements):
 
 - `npm run validate` ✅
 - `npm run test:e2e` ✅ (18 tests passed)

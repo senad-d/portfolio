@@ -339,12 +339,14 @@ Add browsing interactions inside the Projects section without creating new route
 - [x] Add project detail reveal pattern (expand/collapse or modal/drawer).
 - [x] Keep interaction lightweight and accessible.
 - [x] Add empty-state handling for filters.
+- [x] Revise the objective 7 project treatment into a single-column, newest-first full collection without a selected/show-all mode (objective 10).
 
 ### Acceptance Criteria
 
 - [x] Filters return correct project sets.
 - [x] Project details are viewable without route navigation.
 - [x] Interaction works via keyboard and on mobile.
+- [x] Filters search all projects; clearing restores the complete chronological collection, and hidden cards collapse.
 
 ---
 
@@ -393,6 +395,8 @@ Optimize layout and interactions for mobile-first usage.
 ### Acceptance Criteria
 
 - [x] Header and navigation are comfortable to use on phones.
+- [x] Tablet navigation stays in menu mode below 1024px; all seven links remain reachable.
+- [x] Lane/Stack controls meet 44px sizing, empty badges stay hidden, and Email/Upwork precede guidance.
 - [x] No clipping/overflow issues remain on mobile breakpoints.
 - [x] Core section actions are reachable with one-hand use.
 
@@ -516,3 +520,20 @@ A ticket is complete only if:
 
 - **R5: Personal data exposure from raw profile files**  
   **Mitigation:** sanitization workflow in PORT-008 + final QA review in PORT-015.
+
+---
+
+## 9) Follow-up — Hero restoration and project pointer effect (Objective 11)
+
+### Steps
+
+- [x] Restore the requested deployment terminal transcript and audience/outcome cards in the hero.
+- [x] Make the final terminal cursor blink continuously with a reduced-motion fallback.
+- [x] Restore a mouse-following highlight on project cards for fine-pointer devices.
+- [x] Add focused browser regression coverage for the restored content and card effect.
+
+### Acceptance Criteria
+
+- [x] Terminal lines and the three audience/outcome cards match the supplied content.
+- [x] The final cursor loops continuously unless reduced motion is requested.
+- [x] Project card highlights follow the mouse, clear on exit, and do not initialize for touch or reduced motion.
