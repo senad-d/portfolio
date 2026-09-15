@@ -62,6 +62,12 @@ collections:
               required: false,
             }
           - {
+              label: 'npm Package URL',
+              name: 'npm',
+              widget: 'string',
+              required: false,
+            }
+          - {
               label: 'Live URL',
               name: 'live',
               widget: 'string',

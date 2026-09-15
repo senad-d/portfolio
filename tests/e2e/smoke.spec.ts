@@ -188,14 +188,13 @@ test('keeps nav active item and aria-current aligned for anchor clicks', async (
     await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveClass(
       /is-active/,
     );
-    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveAttribute(
-      'aria-current',
-      'true',
-    );
+    await expect(
+      page.locator(`[data-nav-link][href="${target}"]`),
+    ).toHaveAttribute('aria-current', 'true');
 
-    await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
-      1,
-    );
+    await expect(
+      page.locator('[data-nav-link][aria-current="true"]'),
+    ).toHaveCount(1);
   }
 });
 
@@ -221,14 +220,13 @@ test('sets correct active nav item for direct hash loads', async ({ page }) => {
     await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveClass(
       /is-active/,
     );
-    await expect(page.locator(`[data-nav-link][href="${target}"]`)).toHaveAttribute(
-      'aria-current',
-      'true',
-    );
+    await expect(
+      page.locator(`[data-nav-link][href="${target}"]`),
+    ).toHaveAttribute('aria-current', 'true');
 
-    await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
-      1,
-    );
+    await expect(
+      page.locator('[data-nav-link][aria-current="true"]'),
+    ).toHaveCount(1);
   }
 });
 
@@ -243,13 +241,12 @@ test('keeps active nav state after refresh on deep hash', async ({ page }) => {
   await page.reload();
 
   await expect(page).toHaveURL(/\/portfolio\/#contact$/);
-  await expect(page.locator('[data-nav-link][href="#contact"]')).toHaveAttribute(
-    'aria-current',
-    'true',
-  );
-  await expect(page.locator('[data-nav-link][aria-current="true"]')).toHaveCount(
-    1,
-  );
+  await expect(
+    page.locator('[data-nav-link][href="#contact"]'),
+  ).toHaveAttribute('aria-current', 'true');
+  await expect(
+    page.locator('[data-nav-link][aria-current="true"]'),
+  ).toHaveCount(1);
 });
 
 test('projects filter updates visible cards by lane', async ({ page }) => {
@@ -438,7 +435,10 @@ test('projects filter menu exposes semantic context tied to the trigger', async 
   const filterTrigger = page.locator('[data-filter-trigger]');
   const filterMenu = page.locator('[data-filter-menu]');
 
-  await expect(filterTrigger).toHaveAttribute('aria-controls', 'projects-filter-menu');
+  await expect(filterTrigger).toHaveAttribute(
+    'aria-controls',
+    'projects-filter-menu',
+  );
   await expect(filterTrigger).toHaveAttribute('aria-expanded', 'false');
   await expect(filterMenu).toHaveAttribute('role', 'region');
   await expect(filterMenu).toHaveAttribute(
@@ -559,6 +559,57 @@ test('project details show problem approach and result narrative', async ({
     );
 
   expect(narrativeSectionsHaveText).toBe(true);
+});
+
+test('renders the added Pi packages with source and npm links', async ({
+  page,
+}) => {
+  await page.goto(homePath);
+
+  const expectedProjects = [
+    {
+      title: 'BranchMe Git Workflow Automation for Pi',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/branchme',
+    },
+    {
+      title: 'DrawMe Natural-Language Diagramming for Pi',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/drawme',
+    },
+    {
+      title: 'IssueMe GitHub Issue Management for Pi',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/issueme',
+    },
+    {
+      title: 'ObservMe OpenTelemetry for Pi Agent Sessions',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/observme',
+    },
+    {
+      title: 'ProtectMe Network Access Guardrails for Pi',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/protectme',
+    },
+    {
+      title: 'AnalyseMe Sonar Quality Analysis for Pi',
+      npmUrl: 'https://www.npmjs.com/package/@senad-d/analyseme',
+    },
+  ] as const;
+
+  for (const project of expectedProjects) {
+    const card = page
+      .getByRole('heading', { level: 3, name: project.title, exact: true })
+      .locator('..');
+
+    await expect(card).toHaveAttribute('data-project-lane', 'personal');
+    await card.locator('[data-project-details] summary').click();
+    await expect(
+      card.getByRole('link', { name: 'View project source code' }),
+    ).toHaveAttribute('href', /^https:\/\/github\.com\/senad-d\//i);
+    await expect(
+      card.getByRole('link', { name: 'Open npm package' }),
+    ).toHaveAttribute('href', project.npmUrl);
+    await expect(
+      card.getByRole('link', { name: 'Open npm package' }),
+    ).toHaveAttribute('rel', 'noopener noreferrer');
+  }
 });
 
 test('respects reduced-motion preference for smooth scrolling behavior', async ({
