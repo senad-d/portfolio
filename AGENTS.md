@@ -153,7 +153,7 @@ Use Markdown-driven content for all project entries.
 
 ## C) E2E smoke tests (Playwright)
 
-Page-background changes: run `npm run test:e2e -- tests/e2e/header-dot-effect.spec.ts --output=/tmp/portfolio-background-e2e`. The immutable source baseline is `senad-d/portfolio@71cf24c`, verified against the live CSS/JS assets documented in README.md. Preserve its copied starfield block verbatim, original gradient backdrop, masked 56px grid, scroll parallax, and desktop meteors. The live baseline has no pointer-clearing effect; do not reintroduce the reconstructed 3rem/14rem backgrounds or a separate pointer field.
+Page-background changes: run `npm run test:e2e -- tests/e2e/header-dot-effect.spec.ts tests/e2e/star-black-hole.spec.ts --output=/tmp/portfolio-background-e2e`. The immutable source baseline is `senad-d/portfolio@71cf24c`, verified against the live CSS/JS assets documented in README.md. Preserve its copied starfield block verbatim except for the explicit `applyStarBlackHole(deltaSeconds)` post-render hook; preserve the original gradient backdrop, masked 56px grid, scroll parallax, and desktop meteors. Objective 28 replaces Objective 27's erasing-only hook with mouse-only lensing and differential orbits of those same stars: a clipped 220px influence area, radial displacement, and short curved light arcs, with 200ms recovery on exit/blur and no touch/pen or reduced-motion interaction (including live preference changes). Pixel tests must prove displacement and continued rotation, not just an empty core. Do not reintroduce reconstructed 3rem/14rem backgrounds or a separate pointer field. The fingerprint excludes only the hook line and retains the original expected hash.
 
 Include smoke tests for:
 

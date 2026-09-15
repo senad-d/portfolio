@@ -537,3 +537,34 @@ A ticket is complete only if:
 - [x] Terminal lines and the three audience/outcome cards match the supplied content.
 - [x] The final cursor loops continuously unless reduced motion is requested.
 - [x] Project card highlights follow the mouse, clear on exit, and do not initialize for touch or reduced motion.
+
+## Objective 27 — Add black-hole mouse clearing to the restored background
+
+### Steps
+
+- [x] Preserve the `71cf24c` starfield and CSS backdrop; add only a post-render canvas clearing hook.
+- [x] Track fine mouse input with soft activation/recovery and touch/pen exclusion.
+- [x] Handle live reduced-motion changes and pointer/window lifecycle resets.
+- [x] Add pixel-level browser regressions and inspect desktop/tablet/mobile production previews.
+
+### Acceptance Criteria
+
+- [x] Only the existing stars/meteors clear locally under the mouse; the original gradient, 56px grid, palette, density, twinkle, and scroll parallax remain unchanged.
+- [x] Moving the mouse or leaving the viewport restores stars without adding a particle field or cursor trail.
+- [x] Reduced motion stays static; touch/pen input does not activate clearing; canvas remains decorative and keyboard-transparent.
+- [x] Baseline fingerprint and interaction regressions pass. Wider-suite project-filter/hidden-detail and terminal-copy expectation failures are unrelated and remain outside this change.
+
+## Objective 28 — Restore black-hole lensing and orbiting stars
+
+### Steps
+
+- [x] Replace the erasing-only hook with a clipped local redraw of the existing stars/sprites; leave the authoritative renderer and CSS untouched.
+- [x] Add radial lensing, short curved light arcs, and differential orbital motion around a stationary mouse.
+- [x] Preserve input/lifecycle safeguards and add a pixel regression that fails against the old hiding effect.
+- [x] Inspect desktop interaction and tablet/mobile production screenshots; run validation and focused background tests.
+
+### Acceptance Criteria
+
+- [x] Nearby starlight visibly bends and stars continue rotating without adding another particle field or persistent trail.
+- [x] Pointer exit restores source positions; touch/pen and reduced motion do not activate the interaction.
+- [x] The immutable `71cf24c` baseline fingerprint, original gradient/grid, stars, and meteors remain preserved beneath the additive hook.

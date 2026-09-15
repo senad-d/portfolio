@@ -31,18 +31,23 @@ const starPixels = (field: Locator) =>
     return { visible, total: canvas.width * canvas.height };
   });
 
-test('retains the exact immutable starfield source, not a reconstruction', () => {
+test('retains the exact immutable starfield source beneath the additive mouse hook', () => {
   const source = readFileSync('src/layouts/MainLayout.astro', 'utf8');
   const start = source.indexOf('        // ── Canvas starfield');
   const end = source.indexOf('        if (navLinks.length === 0)', start);
   expect(start).toBeGreaterThan(0);
   expect(end).toBeGreaterThan(start);
-  // Ignore only comments/whitespace so the normal formatter remains safe.
+  // Exclude only the explicit post-render hook; all baseline rendering stays
+  // fingerprinted, including palette, density, sprites, layers and meteors.
+  const baseline = source.slice(start, end);
+  const hook = '          applyStarBlackHole(deltaSeconds); // Additive interaction hook.\n';
+  expect(baseline.split(hook)).toHaveLength(2);
+  // Retain the restoration's historical fingerprint unchanged.
   const scanner = ts.createScanner(
     ts.ScriptTarget.Latest,
     true,
     ts.LanguageVariant.Standard,
-    source.slice(start, end),
+    baseline.replace(hook, ''),
   );
   const tokens: string[] = [];
   while (scanner.scan() !== ts.SyntaxKind.EndOfFileToken) {

@@ -143,6 +143,123 @@ const navLinks = [
             link instanceof HTMLAnchorElement,
         );
 
+        // Additive mouse-only lensing of the restored stars, not a new field.
+        const starPointerMedia = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const starMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const blackHole = { x: 0, y: 0, active: false, strength: 0 };
+        const releaseBlackHole = () => { blackHole.active = false; };
+        const resetBlackHole = () => {
+          releaseBlackHole();
+          blackHole.strength = 0;
+          starOrbits = new WeakMap();
+        };
+
+        window.addEventListener('pointermove', (event) => {
+          if (event.pointerType !== 'mouse' || !starPointerMedia.matches || starMotionMedia.matches) {
+            releaseBlackHole();
+            return;
+          }
+          blackHole.x = event.clientX;
+          blackHole.y = event.clientY;
+          blackHole.active = true;
+        }, { passive: true });
+        document.documentElement.addEventListener('pointerleave', releaseBlackHole);
+        window.addEventListener('pointerout', (event) => {
+          if (event.relatedTarget === null) releaseBlackHole();
+        });
+        window.addEventListener('pointercancel', releaseBlackHole);
+        window.addEventListener('blur', releaseBlackHole);
+        window.addEventListener('resize', resetBlackHole, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) resetBlackHole();
+        });
+        starPointerMedia.addEventListener('change', releaseBlackHole);
+        starMotionMedia.addEventListener('change', () => {
+          resetBlackHole();
+          rebuildStarfield();
+        });
+
+        let starOrbits = new WeakMap<Star, { phase: number; influence: number }>();
+        const applyStarBlackHole = (deltaSeconds: number) => {
+          if (!starCtx) return;
+          const step = deltaSeconds / 0.2;
+          const previousStrength = blackHole.strength;
+          blackHole.strength = blackHole.active
+            ? Math.min(1, blackHole.strength + step)
+            : Math.max(0, blackHole.strength - step);
+          if (blackHole.strength === 0) {
+            if (previousStrength > 0) starOrbits = new WeakMap();
+            return;
+          }
+
+          // Replace only this local patch using the SAME stars and sprites.
+          // No readback, extra canvas, generated particles, or persistent trails.
+          // A margin beyond the lens keeps boundary halos intact under the clip.
+          const reach = 220;
+          const patch = reach + CULL_MARGIN;
+          starCtx.save();
+          starCtx.beginPath();
+          starCtx.arc(blackHole.x, blackHole.y, patch, 0, Math.PI * 2);
+          starCtx.clip();
+          starCtx.clearRect(blackHole.x - patch, blackHole.y - patch, patch * 2, patch * 2);
+
+          for (let layerIndex = 0; layerIndex < STAR_LAYERS.length; layerIndex += 1) {
+            const offset = window.scrollY * STAR_LAYERS[layerIndex].parallax;
+            for (const star of starLayers[layerIndex]) {
+              const screenY = star.y - offset;
+              const dx = star.x - blackHole.x;
+              const dy = screenY - blackHole.y;
+              const distance = Math.hypot(dx, dy);
+              if (distance > patch + CULL_MARGIN || screenY < -CULL_MARGIN || screenY > sceneHeight + CULL_MARGIN) continue;
+
+              const t = Math.min(1, distance / reach);
+              const influence = 1 - t * t * (3 - 2 * t);
+              const strength = influence * blackHole.strength;
+              // Differential angular velocity: inner stars orbit faster. Keep
+              // phase bounded and recover by the shortest path to the source.
+              const orbit = starOrbits.get(star);
+              const previousPhase = orbit && orbit.influence > 0
+                ? orbit.phase * Math.min(1, influence / orbit.influence)
+                : 0;
+              const nextPhase = previousPhase + deltaSeconds * 0.9 * influence;
+              const phase = Math.atan2(Math.sin(nextPhase), Math.cos(nextPhase));
+              starOrbits.set(star, { phase, influence });
+              const angle = Math.atan2(dy, dx) + Math.atan2(Math.sin(phase), Math.cos(phase)) * blackHole.strength;
+              const radius = distance + (Math.hypot(distance, 85) - distance) * strength;
+              const x = blackHole.x + Math.cos(angle) * radius;
+              const y = blackHole.y + Math.sin(angle) * radius;
+              const alpha = star.baseAlpha * (0.38 + 0.62 * (0.5 + 0.5 * Math.sin(star.phase)));
+
+              // Bend each star's own light into a short tapered orbital arc.
+              // Its tint and brightness come from the original star, not a ring.
+              if (strength > 0.01) {
+                const [r, g, b] = STAR_TINT_RGB[star.tint];
+                starCtx.strokeStyle = `rgb(${r},${g},${b})`;
+                starCtx.lineWidth = Math.max(0.65, star.r);
+                starCtx.lineCap = 'round';
+                const arc = 0.24 * strength;
+                for (let segment = 0; segment < 4; segment += 1) {
+                  starCtx.globalAlpha = alpha * strength * (0.2 + segment * 0.18);
+                  starCtx.beginPath();
+                  starCtx.arc(blackHole.x, blackHole.y, radius, angle - arc + arc * segment / 4, angle - arc + arc * (segment + 1) / 4);
+                  starCtx.stroke();
+                }
+              }
+              if (star.glow && !isLiteMode) {
+                const haloR = star.r * 7;
+                starCtx.globalAlpha = alpha * 0.45;
+                starCtx.drawImage(haloSprites[star.tint], x - haloR, y - haloR, haloR * 2, haloR * 2);
+              }
+              starCtx.globalAlpha = alpha;
+              starCtx.drawImage(dotSprites[star.tint], x - star.r, y - star.r, star.r * 2, star.r * 2);
+            }
+          }
+          // Preserve meteors across the replaced patch as well as outside it.
+          starCtx.globalAlpha = 1;
+          drawMeteors();
+          starCtx.restore();
+        };
+
         // ── Canvas starfield ──────────────────────────────────────────────
         // Deep-space background: three parallax star layers with twinkle
         // plus occasional shooting stars. The canvas stays viewport-sized;
@@ -445,6 +562,7 @@ const navLinks = [
           drawStars(deltaSeconds, window.scrollY, true);
           updateMeteors(deltaSeconds);
           drawMeteors();
+          applyStarBlackHole(deltaSeconds); // Additive interaction hook.
 
           starFrameId = window.requestAnimationFrame(animateStarfield);
         };
