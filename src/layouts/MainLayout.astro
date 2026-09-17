@@ -8,14 +8,45 @@ interface Props {
 }
 
 const {
-  title = 'Senad | DevOps',
-  description = 'DevOps portfolio.',
-  ogImage = '/og-image.svg',
+  title = 'Senad Dizdarević — AWS DevOps & Cloud Engineer',
+  description = 'Senad Dizdarević, AWS-certified DevOps and cloud engineer. Secure automation, reliable delivery pipelines, and measurable cloud outcomes.',
+  ogImage = `${import.meta.env.BASE_URL}og-image.png`,
 } = Astro.props;
 
 const pageBaseUrl = Astro.site ?? Astro.url;
 const canonicalUrl = new URL(Astro.url.pathname, pageBaseUrl).toString();
 const resolvedOgImage = new URL(ogImage, pageBaseUrl).toString();
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: canonicalUrl,
+  mainEntity: {
+    '@type': 'Person',
+    name: 'Senad Dizdarević',
+    alternateName: 'Senad Dizdarevic',
+    jobTitle: 'DevOps & Cloud Engineer',
+    description,
+    url: canonicalUrl,
+    image: resolvedOgImage,
+    knowsAbout: [
+      'AWS',
+      'DevOps',
+      'Terraform',
+      'Kubernetes',
+      'CI/CD',
+      'Cloud infrastructure',
+      'Observability',
+      'Platform engineering',
+    ],
+    sameAs: [
+      'https://github.com/senad-d',
+      'https://www.linkedin.com/in/senad-dizdarevic-devops',
+      'https://www.upwork.com/freelancers/~017a10028c45b2150f',
+      'https://www.youtube.com/@senaddizdarevic7849',
+    ],
+  },
+};
 
 const navLinks = [
   { href: '#home', label: 'Home' },
@@ -63,6 +94,12 @@ const navLinks = [
     <meta name="twitter:image" content={resolvedOgImage} />
 
     <title>{title}</title>
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(personSchema)}
+    />
   </head>
   <body class="page-shell">
     <a href="#main-content" class="skip-link focus-ring">Skip to content</a>

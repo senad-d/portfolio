@@ -21,6 +21,7 @@
     "new:project": "bash ./scripts/new-project.sh"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "astro": "^6.3.6"
   },
   "devDependencies": {

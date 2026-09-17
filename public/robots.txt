@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://senad-d.github.io/portfolio/sitemap-index.xml

@@ -112,7 +112,7 @@ Analytics is disabled by default. Enable one provider with public env vars:
 
 ```bash
 PUBLIC_ANALYTICS_PROVIDER=plausible
-PUBLIC_PLAUSIBLE_DOMAIN=senad.github.io
+PUBLIC_PLAUSIBLE_DOMAIN=senad-d.github.io
 # optional override:
 # PUBLIC_PLAUSIBLE_SRC=https://plausible.io/js/script.js
 ```
@@ -171,7 +171,7 @@ PUBLIC_USE_CUSTOM_DOMAIN=true PUBLIC_SITE_URL=https://your-domain.tld/ npm run b
 
 Default live URL for this repository:
 
-- `https://senad.github.io/portfolio/`
+- `https://senad-d.github.io/portfolio/`
 
 ## Operations and quality docs
 
