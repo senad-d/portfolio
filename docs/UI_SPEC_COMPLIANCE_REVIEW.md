@@ -42,30 +42,30 @@ Overall status: **Compliant** with the current implementation-aligned UX spec.
 
 ## 3) Compliance matrix
 
-| Area | Status | Evidence |
-| --- | --- | --- |
-| Single-page route architecture | ✅ | `src/pages/index.astro` (all sections on one page) |
-| Required section IDs present | ✅ | `#home`, `#projects`, `#experience`, `#skills`, `#certifications`, `#about`, `#contact` in `src/pages/index.astro` |
-| Sticky header always visible | ✅ | `.site-header { position: fixed; }` in `src/styles/global.css`; smoke test asserts fixed header while scrolling |
-| Primary anchor nav in header | ✅ | `navLinks` in `src/layouts/MainLayout.astro` (`#home`, `#projects`, `#experience`, `#skills`, `#certifications`, `#about`, `#contact`) |
-| Active nav link tracking | ✅ | scroll/hash sync script in `src/layouts/MainLayout.astro`, `aria-current` state updates |
-| Mobile navigation behavior | ✅ | hamburger toggle logic + close on link click/escape/breakpoint in `src/layouts/MainLayout.astro` |
-| Anchor landing with sticky offset | ✅ | `scroll-padding-top` + section spacing in `src/styles/global.css`; Playwright anchor test passes |
-| Hero messaging + CTA availability | ✅ | Hero section in `src/pages/index.astro` with `View projects` and `Contact` actions |
-| Markdown-driven project content | ✅ | `getCollection('projects')` usage in `src/pages/index.astro`; schema in `src/content.config.ts` |
-| Project card completeness | ✅ | title/summary/stack/impact/details/actions rendered in project card template |
-| Project filter controls | ✅ | lane radio + stack checkbox filters with clear action in `src/pages/index.astro` |
-| Filter accessibility announcements | ✅ | `aria-live="polite"` status node + runtime text updates (`data-filter-status`) |
-| Empty filter state handling | ✅ | `data-project-empty` message toggled by filtering script |
-| Experience timeline module | ✅ | `#experience` section and timeline markup in `src/pages/index.astro` |
-| Skills grouped module | ✅ | `skillGroups` rendered in `#skills` section |
-| Certifications + tools module | ✅ | `#certifications` section with credential metadata + tools rail |
-| Contact CTA set | ✅ | Email, Upwork, LinkedIn, GitHub, YouTube links in `#contact` |
-| External link safety attributes | ✅ | `target="_blank"` + `rel="noopener noreferrer"` on external links |
-| Focus-visible treatment | ✅ | `.focus-ring:focus-visible` in `src/styles/global.css` |
-| Reduced motion support | ✅ | `@media (prefers-reduced-motion: reduce)` in `src/styles/global.css` |
-| Mobile touch-target sizing | ✅ | 44px minimum applied across key interactive controls in CSS |
-| SEO/social metadata baseline | ✅ | canonical + OG + Twitter tags in `src/layouts/MainLayout.astro` |
+| Area                               | Status | Evidence                                                                                                                               |
+| ---------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Single-page route architecture     | ✅     | `src/pages/index.astro` (all sections on one page)                                                                                     |
+| Required section IDs present       | ✅     | `#home`, `#projects`, `#experience`, `#skills`, `#certifications`, `#about`, `#contact` in `src/pages/index.astro`                     |
+| Sticky header always visible       | ✅     | `.site-header { position: fixed; }` in `src/styles/global.css`; smoke test asserts fixed header while scrolling                        |
+| Primary anchor nav in header       | ✅     | `navLinks` in `src/layouts/MainLayout.astro` (`#home`, `#projects`, `#experience`, `#skills`, `#certifications`, `#about`, `#contact`) |
+| Active nav link tracking           | ✅     | scroll/hash sync script in `src/layouts/MainLayout.astro`, `aria-current` state updates                                                |
+| Mobile navigation behavior         | ✅     | hamburger toggle logic + close on link click/escape/breakpoint in `src/layouts/MainLayout.astro`                                       |
+| Anchor landing with sticky offset  | ✅     | `scroll-padding-top` + section spacing in `src/styles/global.css`; Playwright anchor test passes                                       |
+| Hero messaging + CTA availability  | ✅     | Hero section in `src/pages/index.astro` with `View projects` and `Contact` actions                                                     |
+| Markdown-driven project content    | ✅     | `getCollection('projects')` usage in `src/pages/index.astro`; schema in `src/content.config.ts`                                        |
+| Project card completeness          | ✅     | title/summary/stack/impact/details/actions rendered in project card template                                                           |
+| Project filter controls            | ✅     | lane radio + stack checkbox filters with clear action in `src/pages/index.astro`                                                       |
+| Filter accessibility announcements | ✅     | `aria-live="polite"` status node + runtime text updates (`data-filter-status`)                                                         |
+| Empty filter state handling        | ✅     | `data-project-empty` message toggled by filtering script                                                                               |
+| Experience timeline module         | ✅     | `#experience` section and timeline markup in `src/pages/index.astro`                                                                   |
+| Skills grouped module              | ✅     | `skillGroups` rendered in `#skills` section                                                                                            |
+| Certifications + tools module      | ✅     | `#certifications` section with credential metadata + tools rail                                                                        |
+| Contact CTA set                    | ✅     | Email, Upwork, LinkedIn, GitHub, YouTube links in `#contact`                                                                           |
+| External link safety attributes    | ✅     | `target="_blank"` + `rel="noopener noreferrer"` on external links                                                                      |
+| Focus-visible treatment            | ✅     | `.focus-ring:focus-visible` in `src/styles/global.css`                                                                                 |
+| Reduced motion support             | ✅     | `@media (prefers-reduced-motion: reduce)` in `src/styles/global.css`                                                                   |
+| Mobile touch-target sizing         | ✅     | 44px minimum applied across key interactive controls in CSS                                                                            |
+| SEO/social metadata baseline       | ✅     | canonical + OG + Twitter tags in `src/layouts/MainLayout.astro`                                                                        |
 
 ---
 

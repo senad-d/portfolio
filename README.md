@@ -104,6 +104,33 @@ Navigation behavior:
 - Header links jump to section anchors
 - Anchor jumps must account for sticky-header offset
 
+## Agent browsing surface
+
+The single HTML route is for humans. Agents and LLM crawlers get generated,
+build-time mirrors of the same content, so they never drift from
+`src/content/projects/` or `src/data/profile.ts`:
+
+| Route                | Source                            | Purpose                                                                     |
+| -------------------- | --------------------------------- | --------------------------------------------------------------------------- |
+| `llms.txt`           | `src/pages/llms.txt.ts`           | [llmstxt.org](https://llmstxt.org/) index: summary plus linked project list |
+| `llms-full.txt`      | `src/pages/llms-full.txt.ts`      | Whole portfolio, including project bodies, as one Markdown file             |
+| `agent-index.json`   | `src/pages/agent-index.json.ts`   | Structured profile, skills, experience, certifications, projects            |
+| `projects/<slug>.md` | `src/pages/projects/[slug].md.ts` | Plain-Markdown mirror of one project case study                             |
+
+`src/components/AgentTools.astro` registers WebMCP tools (`list_projects`,
+`get_project`, `search_portfolio`, `get_profile`, `get_contact_channels`) on
+`navigator.modelContext`, so an in-browser agent can query the portfolio
+instead of scraping the DOM. It feature-detects and no-ops in browsers without
+WebMCP, and loads `agent-index.json` lazily on the first tool call.
+
+`public/robots.txt` allows AI crawler and agent user agents explicitly,
+including the opt-out-only `Google-Extended` and `Applebot-Extended` tokens.
+
+Constraint: Lighthouse's `llms-txt` audit fetches `<origin>/llms.txt`, ignoring
+`base`. On the project-pages deploy the file lives at `/portfolio/llms.txt`, so
+that audit reports `notApplicable`. It only scores once the site runs at a
+domain root (`PUBLIC_USE_CUSTOM_DOMAIN=true`).
+
 ## Optional analytics integration (privacy-friendly)
 
 Analytics is disabled by default. Enable one provider with public env vars:

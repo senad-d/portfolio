@@ -1,51 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
 import MainLayout from '../layouts/MainLayout.astro';
-
-const monthLabels = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
-
-const toNormalizedProjectDate = (value: string) => {
-  const isoDateMatch = value.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
-
-  if (isoDateMatch) {
-    const [, year, month] = isoDateMatch;
-
-    return {
-      sortKey: `${year}-${month}`,
-      label: `${monthLabels[Number(month) - 1]} ${year}`,
-    };
-  }
-
-  const labelDateMatch = value.match(
-    /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/,
-  );
-
-  if (labelDateMatch) {
-    const [, monthLabel, year] = labelDateMatch;
-    const monthIndex =
-      monthLabels.indexOf(monthLabel as (typeof monthLabels)[number]) + 1;
-
-    return {
-      sortKey: `${year}-${String(monthIndex).padStart(2, '0')}`,
-      label: `${monthLabel} ${year}`,
-    };
-  }
-
-  return { sortKey: '0000-00', label: value };
-};
+import {
+  certifications,
+  coreTools,
+  experienceTimeline,
+  skillGroups,
+} from '../data/profile';
+import { dateRange, getSortedProjects } from '../lib/projects';
 
 const normalizeMarkdownExcerpt = (value: string) =>
   value
@@ -85,20 +46,14 @@ const toProjectNarrative = (
   result: extractNarrativeSection(body, 'Result') || impact[0] || summary,
 });
 
-const projects = (await getCollection('projects'))
-  .map((project) => ({
-    ...project,
-    narrative: toProjectNarrative(
-      project.body ?? '',
-      project.data.summary,
-      project.data.impact,
-    ),
-  }))
-  .sort((a, b) =>
-    toNormalizedProjectDate(b.data.startDate).sortKey.localeCompare(
-      toNormalizedProjectDate(a.data.startDate).sortKey,
-    ),
-  );
+const projects = (await getSortedProjects()).map((project) => ({
+  ...project,
+  narrative: toProjectNarrative(
+    project.body ?? '',
+    project.data.summary,
+    project.data.impact,
+  ),
+}));
 
 const toStackFilterValue = (value: string) =>
   value
@@ -112,189 +67,6 @@ const stackOptions = Array.from(
 
 const laneLabel = (lane: 'professional' | 'personal') =>
   lane.charAt(0).toUpperCase() + lane.slice(1);
-
-const dateRange = (startDate: string, endDate: string) => {
-  const start = toNormalizedProjectDate(startDate).label;
-  const end =
-    endDate.toLowerCase() === 'present'
-      ? 'Present'
-      : toNormalizedProjectDate(endDate).label;
-
-  return `${start} — ${end}`;
-};
-
-const skillGroups = [
-  {
-    title: 'AWS Platform Delivery',
-    items: [
-      'AWS Organisations',
-      'AWS SecurityHub',
-      'AWS Config',
-      'IAM',
-      'VPC',
-      'AWS TransitGateway',
-      'LoadBalancer',
-      'CloudMap',
-      'EC2',
-      'ECS',
-      'EKS',
-      'Lambda',
-      'API Gateway',
-      'RDS',
-      'DynamoDB',
-      'S3',
-      'ECR',
-      'ElastiCache',
-      'CodeArtifact',
-      'CloudFront',
-      'Route 53',
-      'Cognito',
-      'WAF',
-      'SES',
-      'SNS',
-      'SQS',
-      'SecurityHub',
-      'ParameterStore',
-      'CodeConnect',
-    ],
-  },
-  {
-    title: 'Tools & Automation',
-    items: [
-      'Terraform',
-      'CloudFormation',
-      'GitHub Actions',
-      'CodePipeline',
-      'Jenkins',
-      'Git',
-      'Docker',
-      'OpenID',
-      'Keycloak',
-      'OpenVPN',
-    ],
-  },
-  {
-    title: 'Frameworks and Languages Used Across Projects',
-    items: [
-      'Spring Boot',
-      'Golang',
-      'Java',
-      'Node.js',
-      'React',
-      'Angular',
-      'TypeScript',
-      'JavaScript',
-      '.NET',
-      'Python',
-      'Bash',
-    ],
-  },
-  {
-    title: 'Observability & Security',
-    items: [
-      'CloudWatch',
-      'Grafana',
-      'Loki',
-      'Prometheus',
-      'Tempo',
-      'OpenTelemetry',
-      'Trivy',
-      'OWASP Dependency-Check',
-      'Security Hub',
-      'AWS Config',
-    ],
-  },
-  {
-    title: 'LLM Tooling',
-    items: [
-      'OpenAI models',
-      'Claude models',
-      'Gemma',
-      'Mistral',
-      'Qwen',
-      'Codex',
-      'Ollama',
-      'LM Studio',
-      'Pi',
-    ],
-  },
-];
-
-const experienceTimeline = [
-  {
-    role: 'DevOps Engineer — Principal Technology CSE',
-    company: 'Valcon (full-time)',
-    period: 'Jan 2026 — Present',
-    highlights: [
-      'Focus: Amazon Web Services (AWS), Terraform, and platform engineering.',
-      'Lead enterprise cloud delivery with secure and scalable infrastructure patterns.',
-    ],
-  },
-  {
-    role: 'DevOps Engineer',
-    company: 'Upwork (freelance)',
-    period: 'Feb 2025 — Present',
-    highlights: [
-      'Focus: Amazon Web Services (AWS) and Terraform.',
-      'Design and operate production-ready AWS environments for freelance clients.',
-    ],
-  },
-  {
-    role: 'DevOps Engineer — Senior Specialist',
-    company: 'Valcon (full-time)',
-    period: 'Jul 2024 — Jan 2026',
-    highlights: [
-      'Focus: Amazon Web Services (AWS) and Terraform.',
-      'Scaled reusable IaC and deployment workflows across client engagements.',
-    ],
-  },
-  {
-    role: 'DevOps Technology Specialist',
-    company: 'Valcon (full-time)',
-    period: 'Jan 2023 — Jul 2024',
-    highlights: [
-      'Focus: infrastructure and Linux.',
-      'Supported stable operations and core infrastructure improvements.',
-    ],
-  },
-  {
-    role: 'DevOps Engineer',
-    company: 'Valcon (full-time)',
-    period: 'Sep 2022 — Jan 2023',
-    highlights: [
-      'Focus: infrastructure, Git, and DevOps tooling.',
-      'Built foundational delivery workflows for cloud platform work.',
-    ],
-  },
-  {
-    role: 'Technical Support Manager',
-    company: 'INA Grupa (full-time)',
-    period: 'Jan 2011 — Nov 2022',
-    highlights: [
-      'Led long-term on-site production support operations.',
-      'Built incident communication and coordination discipline applied in later DevOps delivery.',
-    ],
-  },
-];
-
-const certifications: Array<{
-  title: string;
-  issuer: string;
-  issued: string;
-  credentialId: string;
-  credentialUrl?: string;
-}> = [
-  {
-    title: 'AWS Certified Solutions Architect — Associate',
-    issuer: 'Amazon Web Services',
-    issued: 'Jan 2023',
-    credentialId: '9FRV6K8KYBVEQG92',
-    credentialUrl:
-      'https://www.certmetrics.com/amazon/public/verification.aspx?code=9FRV6K8KYBVEQG92&lang=en',
-  },
-];
-
-const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
 ---
 
 <MainLayout
@@ -344,8 +116,8 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
         </div>
         <div class="terminal-body">
           <div class="terminal-line" data-terminal-line data-line-type="cmd">
-            <span class="terminal-prompt">❯</span><span class="terminal-cmd"
-              > whoami</span
+            <span class="terminal-prompt">❯</span><span class="terminal-cmd">
+              whoami</span
             >
           </div>
           <div
@@ -356,8 +128,8 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
             senad — devops & cloud engineer · aws certified
           </div>
           <div class="terminal-line" data-terminal-line data-line-type="cmd">
-            <span class="terminal-prompt">❯</span><span class="terminal-cmd"
-              > terraform apply -auto-approve</span
+            <span class="terminal-prompt">❯</span><span class="terminal-cmd">
+              terraform apply -auto-approve</span
             >
           </div>
           <div
@@ -368,8 +140,8 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
             Apply complete! Resources: 128 added, 0 changed, 0 destroyed.
           </div>
           <div class="terminal-line" data-terminal-line data-line-type="cmd">
-            <span class="terminal-prompt">❯</span><span class="terminal-cmd"
-              > ./deploy.sh --env production</span
+            <span class="terminal-prompt">❯</span><span class="terminal-cmd">
+              ./deploy.sh --env production</span
             >
           </div>
           <div
@@ -1084,7 +856,9 @@ const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
       </div>
       <div class="terminal-line" data-terminal-line>
         <span class="terminal-prompt" aria-hidden="true">❯</span><span
-          class="terminal-cmd"> exit 0</span
+          class="terminal-cmd"
+        >
+          exit 0</span
         >
       </div>
     </div>

@@ -12,14 +12,18 @@ const projects = defineCollection({
     status: z
       .enum(['completed', 'in-progress', 'archived'])
       .default('completed'),
-    startDate: z.string().regex(
-      /^(\d{4}-(0[1-9]|1[0-2])|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4})$/,
-      'Use YYYY-MM or Mon YYYY format for startDate.',
-    ),
-    endDate: z.string().regex(
-      /^((\d{4}-(0[1-9]|1[0-2]))|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4})|present)$/i,
-      'Use YYYY-MM, Mon YYYY, or "present" for endDate.',
-    ),
+    startDate: z
+      .string()
+      .regex(
+        /^(\d{4}-(0[1-9]|1[0-2])|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4})$/,
+        'Use YYYY-MM or Mon YYYY format for startDate.',
+      ),
+    endDate: z
+      .string()
+      .regex(
+        /^((\d{4}-(0[1-9]|1[0-2]))|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4})|present)$/i,
+        'Use YYYY-MM, Mon YYYY, or "present" for endDate.',
+      ),
     stack: z.array(z.string()).min(1),
     impact: z.array(z.string()).min(1),
     links: z
@@ -33,9 +37,9 @@ const projects = defineCollection({
         (entryLinks) =>
           Boolean(
             entryLinks.github ||
-              entryLinks.npm ||
-              entryLinks.live ||
-              entryLinks.caseStudy,
+            entryLinks.npm ||
+            entryLinks.live ||
+            entryLinks.caseStudy,
           ),
         {
           message:

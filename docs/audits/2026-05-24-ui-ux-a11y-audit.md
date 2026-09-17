@@ -10,6 +10,7 @@
 ## 1) Audit Scope
 
 The audit covered:
+
 - layout consistency
 - spacing/alignment
 - typography
@@ -78,18 +79,22 @@ No code was modified.
 ## Critical
 
 ### C-01 — Mobile filter menu opens off-screen (not visible on open)
+
 **Category:** Responsiveness, usability, interaction feedback, accessibility  
 **Evidence:**
+
 - `375x812`: filter button at viewport bottom (`btnTop: 768`, `btnBottom: 812`), menu opens at `panelTop: 820`, `panelBottom: 1276`.
 - `320x640`: button `btnBottom: 640`, menu opens at `panelTop: 648`, `panelBottom: 1104`.
 - Menu is opened **below viewport**, so users get weak/ambiguous feedback after tapping filter.
 
 **Why this matters:**
+
 - Major discoverability failure on mobile; users may think filter did not open.
 - Creates avoidable friction for a core browsing control.
 - Impacts keyboard/screen-magnifier users due unexpected scroll jumps when tabbing into off-screen controls.
 
 **WCAG relevance:**
+
 - 1.4.10 Reflow (practical reflow usability)
 - 2.4.3 Focus Order (unexpected focus progression context)
 - 3.2.2 On Input (interaction predictability)
@@ -99,16 +104,20 @@ No code was modified.
 ## High
 
 ### H-01 — Section active state and `aria-current` can misrepresent user location near page end
+
 **Category:** Navigation, accessibility, information architecture  
 **Evidence:**
+
 - Navigating to `#about` near end often yields active nav state as `Contact`.
 - At bottom, multiple sections are simultaneously visible (`certifications`, `about`, `contact`), and active-link logic favors another section.
 
 **Why this matters:**
+
 - Users lose orientation (“Where am I?”) in long single-page flows.
 - `aria-current` inconsistency can mislead assistive technology users.
 
 **WCAG relevance:**
+
 - 2.4.8 Location
 - 3.2.3 Consistent Navigation
 - 4.1.2 Name, Role, Value (state accuracy)
@@ -118,44 +127,55 @@ No code was modified.
 ## Medium
 
 ### M-01 — Hero paragraph line length is too long on large screens
+
 **Category:** Typography, readability, visual hierarchy  
 **Evidence:**
+
 - Estimated character-per-line (CPL):
   - `1440px`: ~120 CPL
   - `1024px`: ~106 CPL
 
 **Why this matters:**
+
 - Long line lengths reduce reading speed and comprehension.
 - Weakens scannability for first-impression messaging.
 
 **WCAG relevance:**
+
 - 1.4.8 Visual Presentation (advisory/AAA guidance on readable line length)
 
 ---
 
 ### M-02 — Projects section is very dense and dominates scroll journey
+
 **Category:** Visual hierarchy, usability, design coherence  
 **Evidence:**
+
 - On mobile (`375x812`), projects section height measured ~`7037px`.
 - 16 projects + stack chips + details controls create heavy cognitive load before users reach later sections.
 
 **Why this matters:**
+
 - Makes deeper sections (`Experience`, `Skills`, `Certifications`, `About`, `Contact`) harder to discover.
 - Increases scroll fatigue and decision fatigue.
 
 ---
 
 ### M-03 — Filter panel interaction cost is high (very long tab path)
+
 **Category:** Accessibility, usability  
 **Evidence:**
+
 - With filter open, keyboard navigation proceeds through many checkbox controls in sequence before returning to main flow.
 - No quick narrowing path is apparent from interaction behavior alone.
 
 **Why this matters:**
+
 - Increases effort for keyboard users.
 - Can make filter usage feel cumbersome in practical navigation.
 
 **WCAG relevance:**
+
 - 2.1.1 Keyboard
 - 2.4.3 Focus Order
 - 2.4.6 Headings and Labels (efficient orientation)
@@ -165,26 +185,33 @@ No code was modified.
 ## Low
 
 ### L-01 — Filter panel lacks explicit semantic container role/label
+
 **Category:** Accessibility semantics  
 **Evidence:**
+
 - Filter trigger uses `aria-expanded` and `aria-controls`, but filter container reported no explicit role/aria-label.
 
 **Why this matters:**
+
 - Screen reader context may be less explicit than ideal when entering a complex filter region.
 
 **WCAG relevance:**
+
 - 1.3.1 Info and Relationships
 - 4.1.2 Name, Role, Value
 
 ---
 
 ### L-02 — Primary nav does not expose all major mid-page sections
+
 **Category:** Navigation, usability  
 **Evidence:**
+
 - Header nav contains `Home`, `Projects`, `About`, `Contact` only.
 - Page contains additional major sections (`Experience`, `Skills`, `Certifications`) without top-level nav shortcuts.
 
 **Why this matters:**
+
 - Reduces direct wayfinding for high-intent users scanning credentials quickly.
 
 ---

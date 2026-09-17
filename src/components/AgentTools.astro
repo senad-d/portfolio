@@ -1,0 +1,240 @@
+---
+import { agentPaths, agentUrl } from '../lib/agent-surface';
+
+/**
+ * Registers WebMCP tools so in-browser agents can query the portfolio
+ * directly instead of scraping the rendered page. No-ops in browsers
+ * without `navigator.modelContext`.
+ */
+const agentIndexUrl = agentUrl(agentPaths.agentIndex, Astro.site);
+const llmsTxtUrl = agentUrl(agentPaths.llmsTxt, Astro.site);
+---
+
+<script is:inline define:vars={{ agentIndexUrl, llmsTxtUrl }}>
+  (() => {
+    const modelContext = navigator.modelContext || document.modelContext;
+
+    if (!modelContext) {
+      return;
+    }
+
+    let indexPromise = null;
+
+    const loadIndex = () => {
+      if (!indexPromise) {
+        indexPromise = fetch(agentIndexUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`agent-index.json returned ${response.status}`);
+            }
+
+            return response.json();
+          })
+          .catch((error) => {
+            indexPromise = null;
+            throw error;
+          });
+      }
+
+      return indexPromise;
+    };
+
+    const reply = (payload) => ({
+      content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+    });
+
+    const matchesText = (project, query) => {
+      const haystack = [
+        project.title,
+        project.summary,
+        project.slug,
+        project.stack.join(' '),
+        project.impact.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(query.toLowerCase());
+    };
+
+    const tools = [
+      {
+        name: 'list_projects',
+        description:
+          'List portfolio projects by Senad Dizdarevic, optionally filtered by lane (professional or personal), technology stack entry, or status. Returns title, summary, stack, period, links, and a Markdown mirror URL for each project.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            lane: {
+              type: 'string',
+              enum: ['professional', 'personal'],
+              description: 'Restrict results to one delivery lane.',
+            },
+            stack: {
+              type: 'string',
+              description:
+                'Case-insensitive technology filter, for example "Terraform" or "EKS".',
+            },
+            status: {
+              type: 'string',
+              enum: ['completed', 'in-progress', 'archived'],
+              description: 'Restrict results to one project status.',
+            },
+            limit: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 50,
+              description: 'Maximum number of projects to return.',
+            },
+          },
+          required: [],
+        },
+        async execute(args) {
+          const input = args || {};
+          const index = await loadIndex();
+          const stack = input.stack ? input.stack.toLowerCase() : null;
+
+          const matches = index.projects.filter((project) => {
+            if (input.lane && project.lane !== input.lane) return false;
+            if (input.status && project.status !== input.status) return false;
+            if (
+              stack &&
+              !project.stack.some((entry) =>
+                entry.toLowerCase().includes(stack),
+              )
+            ) {
+              return false;
+            }
+
+            return true;
+          });
+
+          const limited = input.limit ? matches.slice(0, input.limit) : matches;
+
+          return reply({
+            count: limited.length,
+            total: matches.length,
+            projects: limited,
+          });
+        },
+      },
+      {
+        name: 'get_project',
+        description:
+          'Get the full record for one portfolio project by its slug, including impact statements, external links, and the URL of its plain-Markdown case study.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            slug: {
+              type: 'string',
+              description:
+                'Project slug as returned by list_projects, for example "nebula-eks-platform-foundation".',
+            },
+          },
+          required: ['slug'],
+        },
+        async execute(args) {
+          const index = await loadIndex();
+          const slug = (args && args.slug) || '';
+          const project = index.projects.find((entry) => entry.slug === slug);
+
+          if (!project) {
+            return reply({
+              error: `No project with slug "${slug}".`,
+              availableSlugs: index.projects.map((entry) => entry.slug),
+            });
+          }
+
+          return reply(project);
+        },
+      },
+      {
+        name: 'search_portfolio',
+        description:
+          'Free-text search across portfolio project titles, summaries, technology stacks, and impact statements. Use it to answer questions such as "has this engineer worked with Kubernetes".',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description:
+                'Search term, for example "observability" or "Lambda".',
+            },
+          },
+          required: ['query'],
+        },
+        async execute(args) {
+          const index = await loadIndex();
+          const query = (args && args.query) || '';
+          const matches = index.projects.filter((project) =>
+            matchesText(project, query),
+          );
+
+          return reply({
+            query,
+            count: matches.length,
+            projects: matches.map((project) => ({
+              slug: project.slug,
+              title: project.title,
+              summary: project.summary,
+              stack: project.stack,
+              markdownUrl: project.markdownUrl,
+            })),
+          });
+        },
+      },
+      {
+        name: 'get_profile',
+        description:
+          'Get the professional profile of Senad Dizdarevic: role, summary, work history timeline, skill groups, and certifications.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+        async execute() {
+          const index = await loadIndex();
+
+          return reply({
+            profile: index.profile,
+            coreTools: index.coreTools,
+            skills: index.skills,
+            experience: index.experience,
+            certifications: index.certifications,
+          });
+        },
+      },
+      {
+        name: 'get_contact_channels',
+        description:
+          'Get the ways to reach Senad Dizdarevic: email address plus GitHub, LinkedIn, Upwork, and YouTube profile URLs.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+        async execute() {
+          const index = await loadIndex();
+
+          return reply({
+            email: index.profile.email,
+            links: index.profile.links,
+            llmsTxt: llmsTxtUrl,
+          });
+        },
+      },
+    ];
+
+    if (typeof modelContext.registerTool === 'function') {
+      for (const tool of tools) {
+        modelContext.registerTool(tool);
+      }
+
+      return;
+    }
+
+    if (typeof modelContext.provideContext === 'function') {
+      modelContext.provideContext({ tools });
+    }
+  })();
+</script>

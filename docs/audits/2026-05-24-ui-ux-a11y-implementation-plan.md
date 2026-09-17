@@ -6,6 +6,7 @@
 ---
 
 ## Severity Legend
+
 - **Critical** = Blocks or severely degrades core task completion
 - **High** = Significant confusion, orientation loss, or accessibility risk
 - **Medium** = Noticeable friction that impacts efficiency/readability
@@ -16,6 +17,7 @@
 ## Phase 1 — Critical Stabilization (Immediate)
 
 ### Issue C-01 — Mobile filter menu opens off-screen
+
 - **Severity:** Critical
 - **Affected areas:** Projects section, mobile filter interaction (`320–375` widths)
 - **Why it matters:** Users do not get reliable visual confirmation that filter opened; interaction appears broken.
@@ -34,6 +36,7 @@
 ## Phase 2 — Navigation & Orientation Reliability
 
 ### Issue H-01 — `aria-current` / active section can mismatch intended anchor near page end
+
 - **Severity:** High
 - **Affected areas:** Sticky header nav (`#about`, `#contact`), section tracking logic
 - **Why it matters:** Users and assistive tech may receive conflicting location signals.
@@ -48,6 +51,7 @@
   - Behavior remains consistent after refresh and direct deep links.
 
 ### Issue L-02 — Main nav omits several major content sections
+
 - **Severity:** Low (promote to Medium if stakeholder goal is quick recruiter scanning)
 - **Affected areas:** Information architecture and top-level navigation
 - **Why it matters:** Reduces direct access to important profile evidence (Experience/Skills/Certifications).
@@ -62,6 +66,7 @@
 ## Phase 3 — Readability, Density, and Interaction Efficiency
 
 ### Issue M-01 — Hero paragraph line length is too long on desktop
+
 - **Severity:** Medium
 - **Affected areas:** Hero copy readability on larger viewports
 - **Why it matters:** Long lines reduce comprehension/scannability in first impression zone.
@@ -74,6 +79,7 @@
   - No readability regression on tablet/mobile.
 
 ### Issue M-02 — Projects section visual density is very high
+
 - **Severity:** Medium
 - **Affected areas:** Projects information architecture, vertical rhythm, scanning flow
 - **Why it matters:** Long dense list delays discovery of later sections and increases cognitive load.
@@ -87,6 +93,7 @@
   - Reduced scroll fatigue before reaching lower sections.
 
 ### Issue M-03 — Filter keyboard journey is long and effortful
+
 - **Severity:** Medium
 - **Affected areas:** Keyboard accessibility and efficiency within filter controls
 - **Why it matters:** High tab cost slows power users and keyboard-only users.
@@ -103,6 +110,7 @@
 ## Phase 4 — Accessibility Semantics Polish
 
 ### Issue L-01 — Filter panel lacks explicit semantic context
+
 - **Severity:** Low
 - **Affected areas:** Filter panel assistive-tech discoverability
 - **Why it matters:** Complex control regions benefit from explicit semantic framing.

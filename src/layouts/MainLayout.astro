@@ -1,4 +1,6 @@
 ---
+import AgentTools from '../components/AgentTools.astro';
+import { agentPaths, agentUrl } from '../lib/agent-surface';
 import '../styles/global.css';
 
 interface Props {
@@ -16,6 +18,9 @@ const {
 const pageBaseUrl = Astro.site ?? Astro.url;
 const canonicalUrl = new URL(Astro.url.pathname, pageBaseUrl).toString();
 const resolvedOgImage = new URL(ogImage, pageBaseUrl).toString();
+const llmsTxtUrl = agentUrl(agentPaths.llmsTxt, Astro.site);
+const llmsFullTxtUrl = agentUrl(agentPaths.llmsFullTxt, Astro.site);
+const agentIndexUrl = agentUrl(agentPaths.agentIndex, Astro.site);
 
 const personSchema = {
   '@context': 'https://schema.org',
@@ -74,6 +79,25 @@ const navLinks = [
     <meta name="robots" content="index,follow" />
     <meta name="theme-color" content="#030409" />
     <link rel="canonical" href={canonicalUrl} />
+
+    <link
+      rel="alternate"
+      type="text/plain"
+      href={llmsTxtUrl}
+      title="llms.txt — agent-readable site index"
+    />
+    <link
+      rel="alternate"
+      type="text/plain"
+      href={llmsFullTxtUrl}
+      title="llms-full.txt — full portfolio as one Markdown file"
+    />
+    <link
+      rel="alternate"
+      type="application/json"
+      href={agentIndexUrl}
+      title="agent-index.json — structured portfolio data"
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -156,7 +180,8 @@ const navLinks = [
       </nav>
     </header>
 
-    <canvas class="signal-canvas" aria-hidden="true" data-signal-canvas></canvas>
+    <canvas class="signal-canvas" aria-hidden="true" data-signal-canvas
+    ></canvas>
 
     <main id="main-content" class="site-main">
       <slot />
@@ -181,26 +206,43 @@ const navLinks = [
         );
 
         // Additive mouse-only lensing of the restored stars, not a new field.
-        const starPointerMedia = window.matchMedia('(hover: hover) and (pointer: fine)');
-        const starMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const starPointerMedia = window.matchMedia(
+          '(hover: hover) and (pointer: fine)',
+        );
+        const starMotionMedia = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        );
         const blackHole = { x: 0, y: 0, active: false, strength: 0 };
-        const releaseBlackHole = () => { blackHole.active = false; };
+        const releaseBlackHole = () => {
+          blackHole.active = false;
+        };
         const resetBlackHole = () => {
           releaseBlackHole();
           blackHole.strength = 0;
           starOrbits = new WeakMap();
         };
 
-        window.addEventListener('pointermove', (event) => {
-          if (event.pointerType !== 'mouse' || !starPointerMedia.matches || starMotionMedia.matches) {
-            releaseBlackHole();
-            return;
-          }
-          blackHole.x = event.clientX;
-          blackHole.y = event.clientY;
-          blackHole.active = true;
-        }, { passive: true });
-        document.documentElement.addEventListener('pointerleave', releaseBlackHole);
+        window.addEventListener(
+          'pointermove',
+          (event) => {
+            if (
+              event.pointerType !== 'mouse' ||
+              !starPointerMedia.matches ||
+              starMotionMedia.matches
+            ) {
+              releaseBlackHole();
+              return;
+            }
+            blackHole.x = event.clientX;
+            blackHole.y = event.clientY;
+            blackHole.active = true;
+          },
+          { passive: true },
+        );
+        document.documentElement.addEventListener(
+          'pointerleave',
+          releaseBlackHole,
+        );
         window.addEventListener('pointerout', (event) => {
           if (event.relatedTarget === null) releaseBlackHole();
         });
@@ -216,7 +258,10 @@ const navLinks = [
           rebuildStarfield();
         });
 
-        let starOrbits = new WeakMap<Star, { phase: number; influence: number }>();
+        let starOrbits = new WeakMap<
+          Star,
+          { phase: number; influence: number }
+        >();
         const applyStarBlackHole = (deltaSeconds: number) => {
           if (!starCtx) return;
           const step = deltaSeconds / 0.2;
@@ -238,16 +283,30 @@ const navLinks = [
           starCtx.beginPath();
           starCtx.arc(blackHole.x, blackHole.y, patch, 0, Math.PI * 2);
           starCtx.clip();
-          starCtx.clearRect(blackHole.x - patch, blackHole.y - patch, patch * 2, patch * 2);
+          starCtx.clearRect(
+            blackHole.x - patch,
+            blackHole.y - patch,
+            patch * 2,
+            patch * 2,
+          );
 
-          for (let layerIndex = 0; layerIndex < STAR_LAYERS.length; layerIndex += 1) {
+          for (
+            let layerIndex = 0;
+            layerIndex < STAR_LAYERS.length;
+            layerIndex += 1
+          ) {
             const offset = window.scrollY * STAR_LAYERS[layerIndex].parallax;
             for (const star of starLayers[layerIndex]) {
               const screenY = star.y - offset;
               const dx = star.x - blackHole.x;
               const dy = screenY - blackHole.y;
               const distance = Math.hypot(dx, dy);
-              if (distance > patch + CULL_MARGIN || screenY < -CULL_MARGIN || screenY > sceneHeight + CULL_MARGIN) continue;
+              if (
+                distance > patch + CULL_MARGIN ||
+                screenY < -CULL_MARGIN ||
+                screenY > sceneHeight + CULL_MARGIN
+              )
+                continue;
 
               const t = Math.min(1, distance / reach);
               const influence = 1 - t * t * (3 - 2 * t);
@@ -255,17 +314,27 @@ const navLinks = [
               // Differential angular velocity: inner stars orbit faster. Keep
               // phase bounded and recover by the shortest path to the source.
               const orbit = starOrbits.get(star);
-              const previousPhase = orbit && orbit.influence > 0
-                ? orbit.phase * Math.min(1, influence / orbit.influence)
-                : 0;
+              const previousPhase =
+                orbit && orbit.influence > 0
+                  ? orbit.phase * Math.min(1, influence / orbit.influence)
+                  : 0;
               const nextPhase = previousPhase + deltaSeconds * 0.9 * influence;
-              const phase = Math.atan2(Math.sin(nextPhase), Math.cos(nextPhase));
+              const phase = Math.atan2(
+                Math.sin(nextPhase),
+                Math.cos(nextPhase),
+              );
               starOrbits.set(star, { phase, influence });
-              const angle = Math.atan2(dy, dx) + Math.atan2(Math.sin(phase), Math.cos(phase)) * blackHole.strength;
-              const radius = distance + (Math.hypot(distance, 85) - distance) * strength;
+              const angle =
+                Math.atan2(dy, dx) +
+                Math.atan2(Math.sin(phase), Math.cos(phase)) *
+                  blackHole.strength;
+              const radius =
+                distance + (Math.hypot(distance, 85) - distance) * strength;
               const x = blackHole.x + Math.cos(angle) * radius;
               const y = blackHole.y + Math.sin(angle) * radius;
-              const alpha = star.baseAlpha * (0.38 + 0.62 * (0.5 + 0.5 * Math.sin(star.phase)));
+              const alpha =
+                star.baseAlpha *
+                (0.38 + 0.62 * (0.5 + 0.5 * Math.sin(star.phase)));
 
               // Bend each star's own light into a short tapered orbital arc.
               // Its tint and brightness come from the original star, not a ring.
@@ -276,19 +345,38 @@ const navLinks = [
                 starCtx.lineCap = 'round';
                 const arc = 0.24 * strength;
                 for (let segment = 0; segment < 4; segment += 1) {
-                  starCtx.globalAlpha = alpha * strength * (0.2 + segment * 0.18);
+                  starCtx.globalAlpha =
+                    alpha * strength * (0.2 + segment * 0.18);
                   starCtx.beginPath();
-                  starCtx.arc(blackHole.x, blackHole.y, radius, angle - arc + arc * segment / 4, angle - arc + arc * (segment + 1) / 4);
+                  starCtx.arc(
+                    blackHole.x,
+                    blackHole.y,
+                    radius,
+                    angle - arc + (arc * segment) / 4,
+                    angle - arc + (arc * (segment + 1)) / 4,
+                  );
                   starCtx.stroke();
                 }
               }
               if (star.glow && !isLiteMode) {
                 const haloR = star.r * 7;
                 starCtx.globalAlpha = alpha * 0.45;
-                starCtx.drawImage(haloSprites[star.tint], x - haloR, y - haloR, haloR * 2, haloR * 2);
+                starCtx.drawImage(
+                  haloSprites[star.tint],
+                  x - haloR,
+                  y - haloR,
+                  haloR * 2,
+                  haloR * 2,
+                );
               }
               starCtx.globalAlpha = alpha;
-              starCtx.drawImage(dotSprites[star.tint], x - star.r, y - star.r, star.r * 2, star.r * 2);
+              starCtx.drawImage(
+                dotSprites[star.tint],
+                x - star.r,
+                y - star.r,
+                star.r * 2,
+                star.r * 2,
+              );
             }
           }
           // Preserve meteors across the replaced patch as well as outside it.
@@ -329,11 +417,14 @@ const navLinks = [
           maxLife: number;
         }
 
-        const STAR_TINT_RGB: Record<StarTint, readonly [number, number, number]> = {
-          white:  [226, 235, 255],
-          cyan:   [125, 226, 247],
+        const STAR_TINT_RGB: Record<
+          StarTint,
+          readonly [number, number, number]
+        > = {
+          white: [226, 235, 255],
+          cyan: [125, 226, 247],
           violet: [186, 156, 255],
-          warm:   [255, 214, 170],
+          warm: [255, 214, 170],
         };
 
         // Pre-rendered sprites (dot + halo per tint). drawImage of a tiny
@@ -371,7 +462,12 @@ const navLinks = [
 
             halos[tint] = makeSprite(HALO_SPRITE_HALF, (context, half) => {
               const gradient = context.createRadialGradient(
-                half, half, 0, half, half, half,
+                half,
+                half,
+                0,
+                half,
+                half,
+                half,
               );
               gradient.addColorStop(0, `rgba(${r},${g},${b},1)`);
               gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -408,29 +504,38 @@ const navLinks = [
           return 'warm';
         };
 
-        let sceneWidth  = window.innerWidth;
+        let sceneWidth = window.innerWidth;
         let sceneHeight = window.innerHeight;
-        let worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
-        let sceneDpr    = window.devicePixelRatio || 1;
+        let worldHeight = Math.max(
+          window.innerHeight,
+          document.documentElement.scrollHeight,
+        );
+        let sceneDpr = window.devicePixelRatio || 1;
 
         let starLayers: Star[][] = [[], [], []];
-        let meteors: Meteor[]    = [];
-        let meteorCountdown      = 4;
-        let starFrameId          = 0;
-        let starLastFrame        = 0;
-        let starResizeTimer      = 0;
-        let isLiteMode           = false;
-        let liteFrameInterval    = 0; // ms; 0 = uncapped (desktop)
+        let meteors: Meteor[] = [];
+        let meteorCountdown = 4;
+        let starFrameId = 0;
+        let starLastFrame = 0;
+        let starResizeTimer = 0;
+        let isLiteMode = false;
+        let liteFrameInterval = 0; // ms; 0 = uncapped (desktop)
 
         const resizeStarCanvas = () => {
           if (!(starCanvas instanceof HTMLCanvasElement) || !starCtx) return;
-          sceneWidth  = window.innerWidth;
+          sceneWidth = window.innerWidth;
           sceneHeight = window.innerHeight;
-          worldHeight = Math.max(sceneHeight, document.documentElement.scrollHeight);
-          sceneDpr = Math.min(window.devicePixelRatio || 1, isLiteMode ? 1.5 : 2);
-          starCanvas.width  = sceneWidth  * sceneDpr;
+          worldHeight = Math.max(
+            sceneHeight,
+            document.documentElement.scrollHeight,
+          );
+          sceneDpr = Math.min(
+            window.devicePixelRatio || 1,
+            isLiteMode ? 1.5 : 2,
+          );
+          starCanvas.width = sceneWidth * sceneDpr;
           starCanvas.height = sceneHeight * sceneDpr;
-          starCanvas.style.width  = `${sceneWidth}px`;
+          starCanvas.style.width = `${sceneWidth}px`;
           starCanvas.style.height = `${sceneHeight}px`;
           starCtx.setTransform(sceneDpr, 0, 0, sceneDpr, 0, 0);
         };
@@ -474,7 +579,11 @@ const navLinks = [
         ) => {
           if (!starCtx) return;
 
-          for (let layerIndex = 0; layerIndex < STAR_LAYERS.length; layerIndex += 1) {
+          for (
+            let layerIndex = 0;
+            layerIndex < STAR_LAYERS.length;
+            layerIndex += 1
+          ) {
             const offset = scrollY * STAR_LAYERS[layerIndex].parallax;
 
             for (const star of starLayers[layerIndex]) {
@@ -558,7 +667,10 @@ const navLinks = [
             const tailY = meteor.y - (meteor.vy / magnitude) * 120;
 
             const trail = starCtx.createLinearGradient(
-              meteor.x, meteor.y, tailX, tailY,
+              meteor.x,
+              meteor.y,
+              tailX,
+              tailY,
             );
             trail.addColorStop(0, `rgba(214,240,255,${alpha.toFixed(3)})`);
             trail.addColorStop(1, 'rgba(214,240,255,0)');
@@ -584,7 +696,10 @@ const navLinks = [
           if (!starCtx) return;
 
           // Lite mode: cap at 30 fps — skip frame if too soon
-          if (liteFrameInterval > 0 && timestamp - starLastFrame < liteFrameInterval - 1) {
+          if (
+            liteFrameInterval > 0 &&
+            timestamp - starLastFrame < liteFrameInterval - 1
+          ) {
             starFrameId = window.requestAnimationFrame(animateStarfield);
             return;
           }
@@ -607,9 +722,12 @@ const navLinks = [
         const rebuildStarfield = () => {
           if (!(starCanvas instanceof HTMLCanvasElement) || !starCtx) return;
 
-          sceneWidth  = window.innerWidth;
-          worldHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
-          isLiteMode  = sceneWidth < 768;
+          sceneWidth = window.innerWidth;
+          worldHeight = Math.max(
+            window.innerHeight,
+            document.documentElement.scrollHeight,
+          );
+          isLiteMode = sceneWidth < 768;
           liteFrameInterval = isLiteMode ? 1000 / 30 : 0;
 
           window.cancelAnimationFrame(starFrameId);
@@ -623,7 +741,9 @@ const navLinks = [
 
           starLayers = STAR_LAYERS.map((layer, layerIndex) => {
             const ySpan = sceneHeight + maxScroll * layer.parallax;
-            const count = Math.round((baseCount * layer.share * ySpan) / sceneHeight);
+            const count = Math.round(
+              (baseCount * layer.share * ySpan) / sceneHeight,
+            );
             return Array.from({ length: count }, () => createStar(layerIndex));
           });
           meteors = [];
@@ -636,7 +756,7 @@ const navLinks = [
           }
 
           starLastFrame = performance.now();
-          starFrameId   = window.requestAnimationFrame(animateStarfield);
+          starFrameId = window.requestAnimationFrame(animateStarfield);
         };
 
         rebuildStarfield();
@@ -929,5 +1049,6 @@ const navLinks = [
         });
       })();
     </script>
+    <AgentTools />
   </body>
 </html>

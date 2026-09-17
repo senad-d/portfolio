@@ -28,6 +28,8 @@ When scaffolded, keep this layout:
 │  ├─ content/
 │  │  └─ projects/
 │  └─ styles/
+│  ├─ data/            # profile data shared by the page and agent routes
+│  ├─ lib/             # project loaders + agent surface builders
 ├─ src/content.config.ts
 ├─ public/
 ├─ .github/workflows/
@@ -175,6 +177,26 @@ Include smoke tests for:
 - Repo Pages (`https://<user>.github.io/<repo>/`) → `base: '/<repo>/'`
 - User/org root domain or custom domain → `base: '/'`
 - Always set correct `site` in `astro.config.*`
+
+## 8b) Agent Browsing Surface
+
+Generated at build time from `src/content/projects/` and `src/data/profile.ts`.
+Do not hand-edit the outputs; change the source and rebuild.
+
+- `src/pages/llms.txt.ts` → `llms.txt`
+- `src/pages/llms-full.txt.ts` → `llms-full.txt`
+- `src/pages/agent-index.json.ts` → `agent-index.json`
+- `src/pages/projects/[slug].md.ts` → `projects/<slug>.md`
+- `src/components/AgentTools.astro` → WebMCP tools on `navigator.modelContext`
+
+Rules:
+
+- New profile or project fields belong in `src/data/profile.ts` or the content
+  collection, never duplicated into an endpoint.
+- Keep WebMCP tool names, descriptions, and `inputSchema` stable; agents bind
+  to them.
+- `npm run lighthouse` covers the `agentic-browsing` category. The `llms-txt`
+  audit only scores when the site is served from a domain root.
 
 ## 9) Quality and Style Rules
 

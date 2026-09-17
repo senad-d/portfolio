@@ -43,7 +43,7 @@ echo "[lighthouse] Running Lighthouse on $url ..."
 npx --yes lighthouse "$url" \
   --quiet \
   --chrome-flags='--headless=new --no-sandbox' \
-  --only-categories=accessibility,best-practices,seo,performance \
+  --only-categories=accessibility,best-practices,seo,performance,agentic-browsing \
   --output=json \
   --output-path="$output_file"
 
@@ -54,11 +54,16 @@ const reportPath = process.env.LIGHTHOUSE_REPORT_PATH;
 const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
 const categories = report.categories;
 
+// A category whose audits are all not-applicable reports a null score.
+const toScore = (category) =>
+  category && category.score !== null ? Math.round(category.score * 100) : null;
+
 const scores = {
-  performance: Math.round(categories.performance.score * 100),
-  accessibility: Math.round(categories.accessibility.score * 100),
-  bestPractices: Math.round(categories['best-practices'].score * 100),
-  seo: Math.round(categories.seo.score * 100),
+  performance: toScore(categories.performance),
+  accessibility: toScore(categories.accessibility),
+  bestPractices: toScore(categories['best-practices']),
+  seo: toScore(categories.seo),
+  agenticBrowsing: toScore(categories['agentic-browsing']),
 };
 
 const thresholds = {
@@ -66,12 +71,13 @@ const thresholds = {
   accessibility: 95,
   bestPractices: 95,
   seo: 95,
+  agenticBrowsing: 95,
 };
 
 console.log('[lighthouse] Scores:', scores);
 
 const failures = Object.entries(thresholds)
-  .filter(([metric, minimum]) => scores[metric] < minimum)
+  .filter(([metric, minimum]) => scores[metric] !== null && scores[metric] < minimum)
   .map(([metric, minimum]) => `${metric} ${scores[metric]} < ${minimum}`);
 
 if (failures.length > 0) {

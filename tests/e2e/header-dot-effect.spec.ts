@@ -40,7 +40,8 @@ test('retains the exact immutable starfield source beneath the additive mouse ho
   // Exclude only the explicit post-render hook; all baseline rendering stays
   // fingerprinted, including palette, density, sprites, layers and meteors.
   const baseline = source.slice(start, end);
-  const hook = '          applyStarBlackHole(deltaSeconds); // Additive interaction hook.\n';
+  const hook =
+    '          applyStarBlackHole(deltaSeconds); // Additive interaction hook.\n';
   expect(baseline.split(hook)).toHaveLength(2);
   // Retain the restoration's historical fingerprint unchanged.
   const scanner = ts.createScanner(

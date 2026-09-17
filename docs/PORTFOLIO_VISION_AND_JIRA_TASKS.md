@@ -48,6 +48,7 @@ Build a portfolio that feels premium and futuristic while staying practical, fas
   - SEO **>= 95**
   - Best Practices **>= 95**
   - Performance **>= 90** (desktop), **>= 80** (mobile)
+  - Agentic Browsing **>= 95**
 - **Motion safety:** decorative animations respect `prefers-reduced-motion`.
 - **Security/privacy:** no secrets or sensitive personal data exposed.
 
