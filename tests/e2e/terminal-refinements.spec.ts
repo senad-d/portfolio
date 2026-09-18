@@ -158,8 +158,8 @@ test('hero shows the requested deployment terminal transcript and looping cursor
 
   const outcomes = page.locator('[data-hero-outcomes] > li');
   await expect(outcomes.locator('h2')).toHaveText([
-    'AI adoption',
-    'AI in delivery',
+    'Adoption',
+    'Delivery',
     'Shared outcome',
   ]);
   await expect(outcomes.locator('p')).toHaveText([

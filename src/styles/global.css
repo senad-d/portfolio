@@ -1542,6 +1542,10 @@ a {
   color: var(--text-100);
 }
 
+.hero-title-line {
+  display: block;
+}
+
 /* Section h2 headings: terminal prompt style */
 .section-block > h2 {
   font-family: var(--font-mono);
