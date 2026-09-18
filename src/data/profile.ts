@@ -111,15 +111,14 @@ export const skillGroups = [
   {
     title: 'LLM Tooling',
     items: [
-      'OpenAI models',
-      'Claude models',
-      'Gemma',
-      'Mistral',
-      'Qwen',
+      'Microsoft Foundry',
+      'AWS Bedrock',
+      'Claud',
       'Codex',
+      'Pi',
+      'LiteLLM',
       'Ollama',
       'LM Studio',
-      'Pi',
     ],
   },
 ];

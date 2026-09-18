@@ -1958,6 +1958,7 @@ a {
 }
 
 .terminal-prompt {
+  margin-right: 1ch;
   color: var(--accent-green);
 }
 

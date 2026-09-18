@@ -20,7 +20,7 @@ impact:
   - Improved operational transparency through CloudWatch and Grafana dashboards.
   - Supported secure, high-availability architecture patterns for critical public services.
 links:
-  caseStudy: https://www.linkedin.com/in/senad-dizdarevic-devops
+  caseStudy: https://www.gov.uk/
 ---
 
 ## Problem
