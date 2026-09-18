@@ -144,7 +144,7 @@ test('hero shows the requested deployment terminal transcript and looping cursor
 
   await expect(terminalLines).toHaveText([
     '❯whoami',
-    'senad — devops & cloud engineer · aws certified',
+    'senad — devops & cloud engineer',
     '❯terraform apply -auto-approve',
     'Apply complete! Resources: 128 added, 0 changed, 0 destroyed.',
     '❯./deploy.sh --env production',

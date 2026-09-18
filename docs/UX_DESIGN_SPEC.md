@@ -93,12 +93,12 @@ Sticky header primary links (same order as sections):
 
 ### 5.2 Hero (`#home`)
 
-- Kicker: `Helping teams build with confidence`.
-- H1: `Reliable systems that help your business move forward`.
+- Kicker: `AWS · Terraform · DevOps`.
+- H1: `Ship on Friday. Sleep on Saturday.`
 - CTA buttons:
   - Primary: `View projects` (`#projects`)
   - Secondary: `Contact` (`#contact`)
-- Compact lead explains the client benefits of dependable systems and less repetitive operational work.
+- Compact lead names the credential and the three deliverables: Terraform-defined infrastructure, pipelines that catch problems pre-release, and security built in from day one.
 - A static terminal labeled `Portfolio snapshot` shows the requested `senad@cloud: ~/portfolio` session: `whoami`, `terraform apply -auto-approve`, and `./deploy.sh --env production`, followed by a continuously blinking final cursor.
 - Three compact audience/outcome cards follow the hero: Hiring teams, Freelance clients, and Shared outcome.
 

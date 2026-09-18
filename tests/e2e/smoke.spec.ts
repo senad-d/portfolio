@@ -26,7 +26,7 @@ test('loads homepage and primary sections', async ({ page }) => {
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: /Reliable systems that help your business move forward/i,
+      name: /Ship on Friday\. Sleep on Saturday\./i,
     }),
   ).toBeVisible();
 
