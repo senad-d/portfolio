@@ -13,7 +13,7 @@ stack:
   - npm
   - YAML
   - Security
-  - LLM Tooling
+  - AI Tooling
 impact:
   - Published GuardMe as a scoped npm package with global, project-local, one-run, Git, and local checkout install paths for Pi.
   - Reduced accidental risky model actions with deny-first shell and filesystem guards for cloud CLIs, credentials, `.git`, `.env`, destructive commands, and sensitive paths.

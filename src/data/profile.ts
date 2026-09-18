@@ -29,6 +29,19 @@ export const profile = {
 
 export const skillGroups = [
   {
+    title: 'AI Tooling',
+    items: [
+      'Microsoft Foundry',
+      'AWS Bedrock',
+      'Claude',
+      'Codex',
+      'Pi',
+      'LiteLLM',
+      'Ollama',
+      'LM Studio',
+    ],
+  },
+  {
     title: 'AWS Platform Delivery',
     items: [
       'AWS Organisations',
@@ -106,19 +119,6 @@ export const skillGroups = [
       'OWASP Dependency-Check',
       'Security Hub',
       'AWS Config',
-    ],
-  },
-  {
-    title: 'LLM Tooling',
-    items: [
-      'Microsoft Foundry',
-      'AWS Bedrock',
-      'Claud',
-      'Codex',
-      'Pi',
-      'LiteLLM',
-      'Ollama',
-      'LM Studio',
     ],
   },
 ];

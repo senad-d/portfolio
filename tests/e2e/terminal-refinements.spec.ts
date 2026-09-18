@@ -152,20 +152,19 @@ test('hero shows the requested deployment terminal transcript and looping cursor
     '❯▊',
   ]);
 
-  await expect(page.locator('.terminal-cursor')).toHaveCSS(
-    'animation-iteration-count',
-    'infinite',
-  );
+  await expect(
+    page.locator('[data-hero-terminal] .terminal-cursor'),
+  ).toHaveCSS('animation-iteration-count', 'infinite');
 
   const outcomes = page.locator('[data-hero-outcomes] > li');
   await expect(outcomes.locator('h2')).toHaveText([
-    'Hiring teams',
-    'Freelance clients',
+    'AI adoption',
+    'AI in delivery',
     'Shared outcome',
   ]);
   await expect(outcomes.locator('p')).toHaveText([
-    'End-to-end platform ownership across architecture, delivery, and day-2 operations.',
-    'Production-ready foundations with practical automation and clear, transparent delivery communication.',
+    'LLM workloads integrated into your applications, on infrastructure that is secure and cost-aware from the start.',
+    'Agent tooling and safety guardrails that speed up commits, reviews, and operations without loosening control.',
     'Faster releases, fewer operational surprises, and maintainable cloud systems.',
   ]);
 });
@@ -182,12 +181,19 @@ test('footer closes the portfolio session with a successful exit status', async 
   await expect(footerTerminal.locator('.terminal-title')).toHaveText(
     'senad@cloud: ~/portfolio',
   );
-  await expect(footerTerminal.locator('[data-terminal-line]')).toHaveCount(2);
+  await expect(footerTerminal.locator('[data-terminal-line]')).toHaveCount(3);
   await expect(footerTerminal.locator('.site-footer-copyright')).toHaveText(
     `© ${new Date().getFullYear()} Senad Dizdarevic`,
   );
-  await expect(footerTerminal.locator('.terminal-prompt')).toHaveText('❯');
+  await expect(footerTerminal.locator('.terminal-prompt')).toHaveText([
+    '❯',
+    '❯',
+  ]);
   await expect(footerTerminal.locator('.terminal-cmd')).toHaveText('exit 0');
+  await expect(footerTerminal.locator('.terminal-cursor')).toHaveCSS(
+    'animation-iteration-count',
+    'infinite',
+  );
   await expect(footerTerminal.locator('a')).toHaveCount(0);
 });
 

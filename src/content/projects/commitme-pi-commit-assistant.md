@@ -12,7 +12,7 @@ stack:
   - Node.js
   - npm
   - Git
-  - LLM Tooling
+  - AI Tooling
 impact:
   - Published CommitMe as a scoped npm package with slash-command, agent-tool, global, project-local, one-run, Git, and local checkout install paths.
   - Improved commit quality by gathering staged and unstaged git context, trimming noisy diffs, accepting steering text, and producing Lightweight Conventional Commit messages.

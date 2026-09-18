@@ -93,14 +93,14 @@ Sticky header primary links (same order as sections):
 
 ### 5.2 Hero (`#home`)
 
-- Kicker: `AWS · Terraform · DevOps`.
+- Kicker: `AWS · Terraform · DevOps · AI`.
 - H1: `Ship on Friday. Sleep on Saturday.`
 - CTA buttons:
   - Primary: `View projects` (`#projects`)
   - Secondary: `Contact` (`#contact`)
 - Compact lead names the credential and the three deliverables: Terraform-defined infrastructure, pipelines that catch problems pre-release, and security built in from day one.
 - A static terminal labeled `Portfolio snapshot` shows the requested `senad@cloud: ~/portfolio` session: `whoami`, `terraform apply -auto-approve`, and `./deploy.sh --env production`, followed by a continuously blinking final cursor.
-- Three compact audience/outcome cards follow the hero: Hiring teams, Freelance clients, and Shared outcome.
+- Three compact outcome cards follow the hero: AI adoption, AI in delivery, and Shared outcome.
 
 ### 5.3 Projects (`#projects`)
 
@@ -177,10 +177,10 @@ If headings are missing, code applies fallback text derived from summary/impact.
 ### 5.6 Skills (`#skills`)
 
 - Skills ledger grouped into:
+  - AI Tooling
   - AWS Platform Delivery
   - Infrastructure & Automation
   - Observability & Security
-  - LLM Tooling
 - Chips are non-interactive informational tags with hover styling.
 
 ### 5.7 Certifications (`#certifications`)
