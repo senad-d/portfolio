@@ -16,7 +16,7 @@ impact:
   - Improved frontend delivery performance through CloudFront edge distribution.
   - Ensured stable backend operations with an ECS-based architecture.
 links:
-  caseStudy: https://www.linkedin.com/in/senad-dizdarevic-devops
+  caseStudy: https://www.lundbeck.com/
 ---
 
 ## Problem

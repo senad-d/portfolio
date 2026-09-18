@@ -24,7 +24,7 @@ impact:
   - Improved release consistency through Dockerized workloads and automated pipelines.
   - Strengthened security posture across infrastructure and delivery workflows for healthcare use cases.
 links:
-  github: https://github.com/senad-d
+  github: https://neuroaeye.com/
 ---
 
 ## Problem

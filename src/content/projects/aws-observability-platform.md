@@ -1,5 +1,5 @@
 ---
-title: Compli.nl AWS Observability Baseline
+title: Compli AWS Observability Baseline
 summary: Unified AWS monitoring into a shared observability baseline that improved alert quality and sped up incident triage.
 lane: professional
 featured: false
@@ -18,7 +18,7 @@ impact:
   - Introduced Slack-routed alert workflows with clearer ownership and faster first response.
   - Extended diagnostic depth by combining CloudWatch with InfluxDB and Telegraf metrics.
 links:
-  caseStudy: https://www.linkedin.com/in/senad-dizdarevic-devops
+  caseStudy: https://www.compli.nl/
 ---
 
 ## Problem

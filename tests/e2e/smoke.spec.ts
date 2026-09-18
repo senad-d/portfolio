@@ -475,9 +475,10 @@ test('projects can be filtered by one or multiple stack options', async ({
 }) => {
   await page.goto(homePath);
 
-  const allCards = page.locator('[data-project-item]');
   const visibleCards = page.locator('[data-project-item]:not([hidden])');
-  const totalCardCount = await allCards.count();
+  // The lane filter defaults to professional, so the baseline for "clearing
+  // stack filters restores the previous set" is the lane's cards, not all 25.
+  const baselineVisibleCount = await visibleCards.count();
 
   await page.locator('[data-filter-trigger]').click();
 
@@ -524,15 +525,17 @@ test('projects can be filtered by one or multiple stack options', async ({
 
   await expect(mendixFilter).not.toBeChecked();
   await expect(terraformFilter).not.toBeChecked();
-  await expect(visibleCards).toHaveCount(totalCardCount);
+  await expect(visibleCards).toHaveCount(baselineVisibleCount);
 });
 
 test('project details remain open until user closes them', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(homePath);
 
-  const cards = page.locator('[data-project-item]');
-  const detailsPanels = page.locator('[data-project-details]');
+  const cards = page.locator('[data-project-item]:not([hidden])');
+  const detailsPanels = page.locator(
+    '[data-project-item]:not([hidden]) [data-project-details]',
+  );
   const detailsPanelCount = await detailsPanels.count();
 
   expect(detailsPanelCount).toBeGreaterThan(1);
@@ -560,7 +563,7 @@ test('project details show problem approach and result narrative', async ({
 }) => {
   await page.goto(homePath);
 
-  const firstCard = page.locator('[data-project-item]').first();
+  const firstCard = page.locator('[data-project-item]:not([hidden])').first();
   await firstCard.locator('[data-project-details] summary').click();
 
   const narrativeTerms = firstCard.locator('.project-story-term');
@@ -579,6 +582,9 @@ test('renders the added Pi packages with source and npm links', async ({
   page,
 }) => {
   await page.goto(homePath);
+
+  // Pi packages sit in the personal lane; the filter defaults to professional.
+  await page.getByRole('radio', { name: 'Personal', exact: true }).check();
 
   const expectedProjects = [
     {
@@ -651,7 +657,7 @@ test('respects reduced-motion preference for smooth scrolling behavior', async (
     './deploy.sh --env production',
   );
 
-  const card = page.locator('[data-project-item]').first();
+  const card = page.locator('[data-project-item]:not([hidden])').first();
   await card.scrollIntoViewIfNeeded();
   const bounds = await card.boundingBox();
   expect(bounds).not.toBeNull();

@@ -42,6 +42,19 @@ const sampleStars = (page: Page) =>
     return points;
   });
 
+// A media-change rebuild clears the canvas and only repaints on the next
+// animation frame, which a paused clock delivers when time advances. Under
+// parallel load the change event can land after runFor has already finished,
+// leaving a blank field, so keep advancing until it repaints.
+const repaintedStars = async (page: Page) => {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const points = await sampleStars(page);
+    if (points.length > 0) return points;
+    await page.clock.runFor(100);
+  }
+  throw new Error('starfield never repainted after the media change');
+};
+
 const corePixels = (page: Page, point: Point) =>
   page.locator(fieldSelector).evaluate((element, center) => {
     const canvas = element as HTMLCanvasElement;
@@ -253,7 +266,7 @@ test('switching to reduced motion clears the interaction and freezes the field u
   expect((await frame(page)) === staticFrame).toBe(true);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.clock.runFor(300);
-  const [newPoint] = await sampleStars(page);
+  const [newPoint] = await repaintedStars(page);
   await page.mouse.move(newPoint.x, newPoint.y);
   await page.clock.runFor(300);
   if (isMobile) expect(await corePixels(page, newPoint)).toBeGreaterThan(0);

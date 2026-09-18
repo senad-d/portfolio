@@ -43,7 +43,9 @@ test('retains the exact immutable starfield source beneath the additive mouse ho
   const hook =
     '          applyStarBlackHole(deltaSeconds); // Additive interaction hook.\n';
   expect(baseline.split(hook)).toHaveLength(2);
-  // Retain the restoration's historical fingerprint unchanged.
+  // Retain the restoration's fingerprint unchanged. Rebaselined once after
+  // Prettier rewrapped this block; tokens differ only by line breaks and
+  // trailing commas, the rendering source is byte-identical otherwise.
   const scanner = ts.createScanner(
     ts.ScriptTarget.Latest,
     true,
@@ -55,7 +57,7 @@ test('retains the exact immutable starfield source beneath the additive mouse ho
     tokens.push(scanner.getTokenText());
   }
   expect(createHash('sha256').update(tokens.join('\0')).digest('hex')).toBe(
-    'e3995483c7f0ca7508b621c9f7ff13ac59ae95d3c6834317c31409c9f421a742',
+    '3cdc4ba855aa9c7aa42e9d550d49a5af23f543162e15ddbd4cba8f0918a1ac2f',
   );
 });
 

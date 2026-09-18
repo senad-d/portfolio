@@ -29,6 +29,9 @@ test('projects use the chronological full-collection layout', async ({
   const cards = page.locator('[data-project-item]');
   const totalCount = await cards.count();
 
+  // The lane filter defaults to professional; All is the full-collection view.
+  await page.getByRole('radio', { name: 'All', exact: true }).check();
+
   await expect(page.locator('[data-project-item]:visible')).toHaveCount(
     totalCount,
   );
@@ -135,10 +138,13 @@ test('hero shows the requested deployment terminal transcript and looping cursor
     '[data-hero-terminal] [data-terminal-line]',
   );
 
-  await expect(terminalLines).toHaveText([
+  await expect(page.locator('[data-hero-terminal] .terminal-title')).toHaveText(
     'senad@cloud: ~/portfolio',
+  );
+
+  await expect(terminalLines).toHaveText([
     '❯whoami',
-    'senad — systems & automation engineer',
+    'senad — devops & cloud engineer · aws certified',
     '❯terraform apply -auto-approve',
     'Apply complete! Resources: 128 added, 0 changed, 0 destroyed.',
     '❯./deploy.sh --env production',
