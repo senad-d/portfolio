@@ -7,18 +7,10 @@ status: in-progress
 startDate: 'Apr 2025'
 endDate: 'present'
 stack:
-  - AWS Organizations
-  - AWS SecurityHub
+  - AWS
   - Terraform
-  - ECS
-  - CloudFront
-  - EFS
-  - RDS
-  - S3
   - Docker
-  - CloudMap
-  - GitHub Actions
-  - CodePipeline
+  - GitHub
 impact:
   - Reduced configuration drift by standardizing infrastructure provisioning with Terraform.
   - Improved release consistency through Dockerized workloads and automated pipelines.

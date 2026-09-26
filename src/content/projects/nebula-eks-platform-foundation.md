@@ -7,11 +7,10 @@ status: in-progress
 startDate: 'Feb 2023'
 endDate: 'present'
 stack:
-  - AWS EKS
+  - AWS
   - Terraform
   - Kubernetes
-  - AWS Networking
-  - GitHub Actions
+  - GitHub
   - OpenVPN
 impact:
   - Standardized baseline infrastructure patterns for new internal development projects.

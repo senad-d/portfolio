@@ -7,11 +7,8 @@ status: completed
 startDate: 'Aug 2023'
 endDate: 'Sep 2023'
 stack:
-  - AWS ECS
-  - AWS S3
-  - AWS CloudFront
+  - AWS
   - Terraform
-  - IAM
 impact:
   - Provisioned separate development and production environments from day one.
   - Secured static asset delivery using private S3 origins behind CloudFront.

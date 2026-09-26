@@ -7,11 +7,8 @@ status: completed
 startDate: 'Mar 2023'
 endDate: 'Apr 2023'
 stack:
-  - AWS ECS
-  - AWS CloudFront
+  - AWS
   - Terraform
-  - AWS CloudWatch
-  - SNS
 impact:
   - Delivered a production-ready backend environment on a highly available ECS architecture.
   - Improved user-facing performance with CloudFront distribution.

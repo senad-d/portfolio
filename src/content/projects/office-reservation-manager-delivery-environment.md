@@ -7,12 +7,9 @@ status: completed
 startDate: 'Dec 2022'
 endDate: 'Jan 2023'
 stack:
-  - AWS CloudFormation
-  - GitHub Actions
+  - AWS
+  - GitHub
   - Mendix
-  - ECS
-  - EFS
-  - RDS
 impact:
   - Delivered a ready-to-use development environment for application teams.
   - Reduced manual provisioning work through CloudFormation automation.
