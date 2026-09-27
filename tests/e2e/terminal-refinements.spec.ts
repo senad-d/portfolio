@@ -39,7 +39,7 @@ test('projects use the chronological full-collection layout', async ({
     page.getByRole('button', { name: /Show all projects/ }),
   ).toHaveCount(0);
   await expect(cards.first().getByRole('heading', { level: 3 })).toHaveText(
-    'DrawMe Natural-Language Diagramming for Pi',
+    'CamLock Android Parental Lock App',
   );
   await expect(cards.first().locator('.project-card-outcome')).toHaveCount(0);
   await expect(cards.first().locator('.project-card-link')).toHaveCount(0);
@@ -66,7 +66,7 @@ test('filters search the collection and clear back to all projects', async ({
   const totalCount = await cards.count();
 
   await page.getByRole('radio', { name: 'Professional' }).check();
-  await expect(visibleCards).toHaveCount(10);
+  await expect(visibleCards).toHaveCount(8);
   await page.getByRole('radio', { name: 'All', exact: true }).check();
   await page.getByRole('button', { name: 'Stack', exact: true }).click();
   await page.locator('#stack-filter-mendix').check();
