@@ -28,7 +28,7 @@ import type { CvVariant } from './cv-variants';
  *
  * Section order follows the conventional European CV: header with personal
  * details, profile, work experience, education, certifications, skills,
- * languages, selected projects. The `full` variant appends the personal and
+ * languages, Projects. The `full` variant appends the personal and
  * open-source project lane. Sections without data are left out.
  */
 
@@ -437,7 +437,7 @@ const buildDefinition = (
 
     ...optionalSection('Languages', languageEntries()),
 
-    sectionTitle('Selected projects'),
+    sectionTitle('Projects'),
     ...selected.map((project) => projectEntry(project)),
   ];
 

@@ -252,6 +252,31 @@ test('keeps active nav state after refresh on deep hash', async ({ page }) => {
   ).toHaveCount(1);
 });
 
+test('marks Contact active at the page bottom whatever the hash says', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
+  for (const hash of ['#home', '#skills', '#about']) {
+    await page.goto(`${homePath}${hash}`);
+    await expect(
+      page.locator(`[data-nav-link][href="${hash}"]`),
+    ).toHaveAttribute('aria-current', 'true');
+
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+
+    await expect(
+      page.locator('[data-nav-link][href="#contact"]'),
+    ).toHaveAttribute('aria-current', 'true');
+    await expect(
+      page.locator('[data-nav-link][aria-current="true"]'),
+    ).toHaveCount(1);
+  }
+});
+
 test('projects filter defaults to professional and updates visible cards by lane', async ({
   page,
 }) => {

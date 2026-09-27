@@ -903,10 +903,11 @@ const navLinks = [
           const nearPageBottom =
             window.innerHeight + window.scrollY >=
             document.documentElement.scrollHeight - 2;
-          const hashId = hashSectionId();
 
-          if (nearPageBottom && sectionIds.has(hashId)) {
-            setActiveLink(hashId);
+          // At the end of the page the last section is the one on screen,
+          // whatever the URL hash says.
+          if (nearPageBottom) {
+            setActiveLink(sections[sections.length - 1].id);
             return;
           }
 

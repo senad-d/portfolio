@@ -84,7 +84,7 @@ Sticky header primary links (same order as sections):
 ### 5.1 Header and navigation
 
 - Includes skip link (`Skip to content`) targeting `#main-content`.
-- Active nav item tracking is scroll-aware and hash-aware.
+- Active nav item tracking is scroll-aware and hash-aware: the section crossing a reference line 35% down the viewport is active; at the end of the page the last section (Contact) is active regardless of the URL hash.
 - `aria-current="true"` is moved to the active nav link.
 - Mobile menu closes on:
   - nav link click,

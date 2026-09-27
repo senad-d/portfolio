@@ -21,7 +21,7 @@ export const cvVariants: CvVariant[] = [
     id: 'professional',
     slug: 'senad-dizdarevic-cv',
     label: 'Professional CV',
-    hint: 'Experience, education, skills, certifications, selected projects',
+    hint: 'Experience, education, skills, certifications, Projects',
     documentTitle: 'Curriculum Vitae',
   },
   {

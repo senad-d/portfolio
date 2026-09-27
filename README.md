@@ -137,10 +137,10 @@ The Contact section links two CVs that `astro build` renders from
 `src/data/profile.ts` and `src/content/projects/`, so they always match the
 site:
 
-| Route                             | Content                                                                                                     |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `cv/senad-dizdarevic-cv.pdf`      | Personal details, profile, work experience, education, certifications, skills, languages, selected projects |
-| `cv/senad-dizdarevic-cv-full.pdf` | The same CV plus personal and open-source projects (title, summary, stack, links)                           |
+| Route                             | Content                                                                                            |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `cv/senad-dizdarevic-cv.pdf`      | Personal details, profile, work experience, education, certifications, skills, languages, Projects |
+| `cv/senad-dizdarevic-cv-full.pdf` | The same CV plus personal and open-source projects (title, summary, stack, links)                  |
 
 Layout and sections live in `src/lib/cv.ts` (pdfmake), variant metadata in
 `src/lib/cv-variants.ts`, and the endpoint in `src/pages/cv/[slug].pdf.ts`.

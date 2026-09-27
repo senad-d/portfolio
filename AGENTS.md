@@ -213,7 +213,7 @@ rebuild.
 
 Rules:
 
-- Section order: header card (personal details from `personalDetails` in `src/data/profile.ts`), profile, work experience, education, certifications, skills, languages, selected projects (professional lane). Empty fields and sections are omitted.
+- Section order: header card (personal details from `personalDetails` in `src/data/profile.ts`), profile, work experience, education, certifications, skills, languages, Projects (professional lane). Empty fields and sections are omitted.
 - `full` appends the personal lane as compact entries (`personalImpactLimit` in `src/lib/cv.ts` controls their impact bullets, default 0).
 - The word "professional" never appears inside the PDF or its file name; `documentTitle` in `src/lib/cv-variants.ts` is what the PDF shows.
 - Keep the variant slugs stable; they are the public download URLs.
