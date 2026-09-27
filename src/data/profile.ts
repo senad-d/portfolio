@@ -198,3 +198,31 @@ export const certifications: Array<{
 ];
 
 export const coreTools = ['AWS', 'Terraform', 'Docker', 'Git', 'Pi'];
+
+/**
+ * Personal details for the generated CV (`src/lib/cv.ts`). Empty values are
+ * left out of the PDF. The CV is a public download, so keep this to what you
+ * are comfortable publishing (city and country rather than a street address).
+ */
+export const personalDetails = {
+  phone: '+385 95 1991 059',
+  location: '51216 Viškovo, Croatia',
+  dateOfBirth: '5 March 1985',
+  nationality: '',
+  drivingLicence: '',
+  availability: 'Employed full-time at Valcon · notice period 1 month',
+};
+
+/** Spoken languages for the CV, for example { name: 'English', level: 'Fluent (C1)' }. */
+export const languages: Array<{ name: string; level: string }> = [
+  { name: 'Croatian', level: 'Native' },
+  { name: 'English', level: 'Fluent' },
+];
+
+/** Education for the CV, newest first. */
+export const education: Array<{
+  degree: string;
+  institution: string;
+  period: string;
+  note?: string;
+}> = [];

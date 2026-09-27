@@ -16,7 +16,7 @@ impact:
   - Improved release consistency through Dockerized workloads and automated pipelines.
   - Strengthened security posture across infrastructure and delivery workflows for healthcare use cases.
 links:
-  github: https://neuroaeye.com/
+  live: https://neuroaeye.com/
 ---
 
 ## Problem

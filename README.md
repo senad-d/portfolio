@@ -131,6 +131,30 @@ Constraint: Lighthouse's `llms-txt` audit fetches `<origin>/llms.txt`, ignoring
 that audit reports `notApplicable`. It only scores once the site runs at a
 domain root (`PUBLIC_USE_CUSTOM_DOMAIN=true`).
 
+## CV downloads (generated PDFs)
+
+The Contact section links two CVs that `astro build` renders from
+`src/data/profile.ts` and `src/content/projects/`, so they always match the
+site:
+
+| Route                             | Content                                                                                                     |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `cv/senad-dizdarevic-cv.pdf`      | Personal details, profile, work experience, education, certifications, skills, languages, selected projects |
+| `cv/senad-dizdarevic-cv-full.pdf` | The same CV plus personal and open-source projects (title, summary, stack, links)                           |
+
+Layout and sections live in `src/lib/cv.ts` (pdfmake), variant metadata in
+`src/lib/cv-variants.ts`, and the endpoint in `src/pages/cv/[slug].pdf.ts`.
+Personal details, languages, and education come from `personalDetails`,
+`languages`, and `education` in `src/data/profile.ts`; empty values and empty
+sections are left out of the PDF. The header photo is
+`src/assets/cv/senad-photo.jpg`, a 360px JPEG copy of `public/senad.png`;
+regenerate it with
+`sips -s format jpeg -s formatOptions 85 -Z 360 --out src/assets/cv/senad-photo.jpg public/senad.png`
+after replacing the original.
+Inter Regular/SemiBold (`src/assets/fonts/inter/`, SIL OFL) is embedded because
+the built-in PDF fonts cannot render the "ć" in the profile name. Edit the
+source data and rebuild to update the PDFs; never commit generated files.
+
 ## Optional analytics integration (privacy-friendly)
 
 Analytics is disabled by default. Enable one provider with public env vars:

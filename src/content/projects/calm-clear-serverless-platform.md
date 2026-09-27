@@ -16,7 +16,7 @@ impact:
   - Replaced server-managed integration flows with API Gateway, Lambda, and DynamoDB to lower maintenance effort.
   - Improved payment and invoicing reliability with centralized API monitoring, logging, and tracing.
 links:
-  github: https://calmclear.com/
+  live: https://calmclear.com/
 ---
 
 ## Problem

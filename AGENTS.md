@@ -198,11 +198,32 @@ Rules:
 - `npm run lighthouse` covers the `agentic-browsing` category. The `llms-txt`
   audit only scores when the site is served from a domain root.
 
+## 8c) Generated CV Downloads
+
+Two PDFs are rendered at build time from the same sources as the page and
+linked from the Contact section (`data-cv-download` cards). Do not commit or
+hand-edit the PDFs; change `src/data/profile.ts` or the project content and
+rebuild.
+
+- `src/lib/cv-variants.ts` → variant ids, slugs, labels, and the `cv/<slug>.pdf` path
+- `src/lib/cv.ts` → pdfmake document definition (layout, sections, styles)
+- `src/pages/cv/[slug].pdf.ts` → `cv/senad-dizdarevic-cv.pdf` and `cv/senad-dizdarevic-cv-full.pdf`
+- `src/assets/fonts/inter/` → Inter Regular/SemiBold (SIL OFL) embedded for Latin Extended glyphs
+- `src/assets/cv/senad-photo.jpg` → header photo, a 360px JPEG copy of `public/senad.png` (regenerate with `sips -s format jpeg -s formatOptions 85 -Z 360 --out src/assets/cv/senad-photo.jpg public/senad.png`)
+
+Rules:
+
+- Section order: header card (personal details from `personalDetails` in `src/data/profile.ts`), profile, work experience, education, certifications, skills, languages, selected projects (professional lane). Empty fields and sections are omitted.
+- `full` appends the personal lane as compact entries (`personalImpactLimit` in `src/lib/cv.ts` controls their impact bullets, default 0).
+- The word "professional" never appears inside the PDF or its file name; `documentTitle` in `src/lib/cv-variants.ts` is what the PDF shows.
+- Keep the variant slugs stable; they are the public download URLs.
+- `npm run test:e2e -- tests/e2e/cv-download.spec.ts` checks the links and that both PDFs are served.
+
 ## 9) Quality and Style Rules
 
 - Prefer semantic HTML and accessible components.
 - Keep JS minimal; avoid unnecessary hydration.
-- Keep animations subtle (150–250ms).
+- Keep animations subtle (150–250ms). Scroll reveals are the exception: 400ms ease-out, revealed in DOM order with a 60ms step (tokens `--motion-*-reveal` in `src/styles/global.css`).
 - Use project design tokens (colors/spacing/typography).
 - External links must use `rel="noopener noreferrer"`.
 

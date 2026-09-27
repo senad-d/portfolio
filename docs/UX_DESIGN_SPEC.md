@@ -204,6 +204,7 @@ If headings are missing, code applies fallback text derived from summary/impact.
   - YouTube (external)
 - Email and Upwork are visually emphasized as top-priority contact CTAs.
 - External links use `target="_blank"` + `rel="noopener noreferrer"`.
+- A "CV downloads" row follows the contact links and precedes the audience guidance: two cards (Professional CV, Full CV) in the contact-card style with a green document icon, a `↓` arrow, and the `download` attribute. Both point to build-time PDFs under `cv/`.
 
 ### 5.9 Footer
 
@@ -238,7 +239,7 @@ Typography implementation:
 - Preserve the original layered gradient backdrop, masked 56px × 56px grid, and three sparse white/cyan/violet/warm star layers with twinkle, scroll parallax, rare near-star halos, and occasional desktop meteors. Objective 28 replaces erasing-only clearing with black-hole lensing of those same stars under a fine mouse pointer: outward displacement around a dark core, short tapered light arcs in each star's original tint, and continuous orbits (faster nearer the center) within a smoothly feathered 220px influence. Activation/recovery takes 200ms. Only a clipped local canvas patch is redrawn from the original stars/sprites; meteors are preserved. No new particles, persistent cursor trail, grid distortion, or baseline palette/density changes. Pointer exit, blur, resize, and tab hiding release the effect; touch/pen input has no interaction.
 - The viewport-sized decorative canvas is non-interactive and hidden from assistive technology. Mobile retains the original lower-density, 30fps lite mode without halos/meteors. Reduced motion renders static stars and disables pointer lensing/orbits, both at load and on preference changes; no JavaScript retains the CSS backdrop with an empty canvas.
 - Terminal content is static; the final terminal cursor blinks continuously, while reduced-motion mode neutralizes the animation.
-- Scroll reveals use 200ms transitions with a small sibling stagger.
+- Scroll reveals are the one exception to the 150–250ms band: a 400ms ease-out rise (`--motion-duration-reveal`, `--motion-ease-reveal`). Elements entering the viewport together reveal in DOM order, 60ms apart (`--motion-reveal-step`); a later batch waits at most 240ms behind the previous one so nothing overtakes or lags. Reduced motion skips the reveal entirely.
 
 ### Reduced motion behavior
 
