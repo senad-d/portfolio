@@ -14,6 +14,12 @@ export interface CvVariant {
   label: string;
   hint: string;
   documentTitle: string;
+  /**
+   * canarytokens.org web bug requested when the card is clicked, so a download
+   * sends an email alert. Public by design (it sits in the page HTML); the
+   * private manage links live in `.local/canarytokens.md` (gitignored).
+   */
+  canaryUrl?: string;
 }
 
 export const cvVariants: CvVariant[] = [
@@ -23,6 +29,8 @@ export const cvVariants: CvVariant[] = [
     label: 'Professional CV',
     hint: 'Experience, education, skills, certifications, Projects',
     documentTitle: 'Curriculum Vitae',
+    canaryUrl:
+      'https://canarytokens.com/articles/traffic/kkps3qfmgojh8zn98ldytuq5r/post.jsp',
   },
   {
     id: 'full',
@@ -30,6 +38,8 @@ export const cvVariants: CvVariant[] = [
     label: 'Full CV',
     hint: 'Adds personal and open-source projects',
     documentTitle: 'Curriculum Vitae (extended)',
+    canaryUrl:
+      'https://canarytokens.com/feedback/b6g99b5pd1u1sqsjff675cwtc/index.html',
   },
 ];
 

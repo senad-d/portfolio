@@ -218,6 +218,11 @@ Rules:
 - The word "professional" never appears inside the PDF or its file name; `documentTitle` in `src/lib/cv-variants.ts` is what the PDF shows.
 - Keep the variant slugs stable; they are the public download URLs.
 - `npm run test:e2e -- tests/e2e/cv-download.spec.ts` checks the links and that both PDFs are served.
+- Each variant has a `canaryUrl` (canarytokens.org web bug). The Contact card
+  requests it on click (script at the end of `src/pages/index.astro`), which
+  emails an alert per download. These URLs are public beacons, not secrets; the
+  private manage links live in `.local/canarytokens.md` (gitignored). The e2e
+  spec stubs `**/canarytokens.com/**` so tests never send real alerts.
 
 ## 9) Quality and Style Rules
 

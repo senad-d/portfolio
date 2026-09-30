@@ -818,6 +818,7 @@ const laneLabel = (lane: 'professional' | 'personal') =>
             download
             class="contact-link-card contact-link-card--cv focus-ring"
             data-cv-download={variant.id}
+            data-cv-canary={variant.canaryUrl}
           >
             <span class="contact-link-icon" aria-hidden="true">
               <svg
@@ -1477,6 +1478,39 @@ const laneLabel = (lane: 'professional' | 'personal') =>
           }
 
           card.removeAttribute('data-pointer-active');
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    // CV download ping: each card carries a canarytokens.org web bug URL
+    // (`canaryUrl` in src/lib/cv-variants.ts). Requesting it on click sends an
+    // email alert; the response is ignored. `keepalive` lets the request finish
+    // even if the click navigates away. Failures never block the download.
+    (() => {
+      const cards = Array.from(
+        document.querySelectorAll('[data-cv-download][data-cv-canary]'),
+      ).filter((card): card is HTMLElement => card instanceof HTMLElement);
+
+      cards.forEach((card) => {
+        card.addEventListener('click', () => {
+          const url = card.dataset.cvCanary;
+
+          if (!url || typeof fetch !== 'function') {
+            return;
+          }
+
+          try {
+            void fetch(url, {
+              mode: 'no-cors',
+              cache: 'no-store',
+              credentials: 'omit',
+              keepalive: true,
+            }).catch(() => undefined);
+          } catch {
+            // Ignore: the ping is best-effort.
+          }
         });
       });
     })();

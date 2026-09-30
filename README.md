@@ -155,6 +155,13 @@ Inter Regular/SemiBold (`src/assets/fonts/inter/`, SIL OFL) is embedded because
 the built-in PDF fonts cannot render the "ć" in the profile name. Edit the
 source data and rebuild to update the PDFs; never commit generated files.
 
+Each CV card requests a [canarytokens.org](https://canarytokens.org) web bug on
+click (`canaryUrl` in `src/lib/cv-variants.ts`), so every download sends an
+email alert with IP, user agent, and referrer. The URLs are public beacons; the
+private manage links (hit history, delete, ignore-IP list) are kept outside git
+in `.local/canarytokens.md`. Playwright stubs `canarytokens.com`, so the e2e
+suite never triggers an alert.
+
 ## Optional analytics integration (privacy-friendly)
 
 Analytics is disabled by default. Enable one provider with public env vars:
